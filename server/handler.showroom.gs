@@ -41,30 +41,30 @@ function getOpeningBalance(data) {
 
 // FROM HANDLERS
 function dailyTransaction(data) {
-    if (!data) {
-        return { status: 0, message: "invalid payload" };
-    }
+  if (!data) {
+    return { status: 0, message: "invalid payload" };
+  }
 
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("DAILY TRANSACTION");
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("DAILY TRANSACTION");
 
-    if (!sheet) {
-        return { status: 0, message: "DAILY TRANSACTION sheet not found" };
-    }
+  if (!sheet) {
+    return { status: 0, message: "DAILY TRANSACTION sheet not found" };
+  }
 
-    const nextRow = getFirstEmptyRow(sheet, "A2:A");
-    const payload = {
-        "SERIAL NUMBER": nextRow - 1,
-        "DATE": new Date(Date.now()),
-        "LOCATION": normalize(data.location),
-        "OPENING BALANCE": normalize(data.openingBalance) || 0,
-        "CASH IN": normalize(data.cashIn) || 0,
-        "CASH OUT": normalize(data.cashOut) || 0,
-        "CASH LEISURE": normalize(data.cashLeisure),
-        "REMARK": normalize(data.remark)
-    };
+  const nextRow = getFirstEmptyRow(sheet, "A2:A");
+  const payload = {
+    "SERIAL NUMBER": nextRow - 1,
+    "DATE": new Date(Date.now()),
+    "LOCATION": normalize(data.location),
+    "OPENING BALANCE": normalize(data.openingBalance) || 0,
+    "CASH IN": normalize(data.cashIn) || 0,
+    "CASH OUT": normalize(data.cashOut) || 0,
+    "CASH LEISURE": normalize(data.cashLeisure),
+    "REMARK": normalize(data.remark)
+  };
 
-    const requiredFields = [
+  const requiredFields = [
     payload["SERIAL NUMBER"],
     payload["DATE"],
     payload["LOCATION"],
@@ -82,4 +82,45 @@ function dailyTransaction(data) {
 
   safeWriteRow(sheet, nextRow, payload, DAILY_TRANSACTION);
   return { status: 1, message: "daily transaction added successfully" };
+}
+
+function newWalkIn(data) {
+  if (!data) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("FOLLOW UP");
+
+  if (!sheet) {
+    return { status: 0, message: "FOLLOW UP sheet not found" };
+  }
+
+  const nextRow = getFirstEmptyRow(sheet, "A2:A");
+  const payload = {
+    "SERIAL NUMBER": nextRow - 1,
+    "VISIT DATE": new Date(Date.now()),
+    "LOCATION": normalize(data.location),
+    "CUSTOMER NAME": normalize(data.customerName),
+    "MOBILE NUMBER": normalize(data.mobileNumber),
+    "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
+    "ADDRESS": normalize(data.address),
+    "VEHICLE DETAILS": normalize(data.vehicleDetails),
+    "STATUS": "OPEN"
+  };
+  
+  const requiredFields = [
+    payload["SERIAL NUMBER"],
+    payload["VISIT DATE"],
+    payload["LOCATION"],
+    payload["CUSTOMER NAME"],
+    payload["MOBILE NUMBER"]
+  ];
+
+  if (requiredFields.some(v => !v)) {
+    return { status: 0, message: "some fields are missing" };
+  }
+
+  safeWriteRow(sheet, nextRow, payload, FOLLOW_UP);
+  return { status: 1, message: "new walk in data added successfully" };
 }
