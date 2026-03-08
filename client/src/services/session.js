@@ -1,4 +1,4 @@
-import { WEBAPP_TOKEN } from "./config.js";
+import { WEBAPP_TOKEN } from "../config/index.js";
 
 const SESSION_KEY = "rm_session";
 const TTL_MS = 6 * 60 * 60 * 1000;

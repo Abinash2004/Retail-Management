@@ -1,4 +1,4 @@
-import { verifyPasscode } from "../services/api.js";
+import { backendRequest } from "../api/index.js";
 import { setSession } from "../services/session.js";
 
 export function renderLogin() {
@@ -25,9 +25,9 @@ export function renderLogin() {
         }
 
         try {
-            const res = await verifyPasscode(passcode);
+            const res = await backendRequest("verifyPassword", passcode);
             if (res.status !== 1) {
-                errorEl.textContent = res.message || "Invalid passcode.";
+                errorEl.textContent = res.message;
                 return;
             }
 

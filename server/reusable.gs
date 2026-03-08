@@ -11,7 +11,7 @@ function jsonResponse(obj) {
 function safeWriteRow(sheet, rowIndex, dataObj, map) {
   for (const key in dataObj) {
     const colIndex = map[key];
-    if (colIndex) {
+    if (colIndex && dataObj[key] !== undefined) {
       sheet.getRange(rowIndex, colIndex).setValue(dataObj[key]);
     }
   }
