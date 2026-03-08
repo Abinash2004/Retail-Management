@@ -57,9 +57,9 @@ function dailyTransaction(data) {
         "SERIAL NUMBER": nextRow - 1,
         "DATE": new Date(Date.now()),
         "LOCATION": normalize(data.location),
-        "OPENING BALANCE": normalize(data.openingBalance),
-        "CASH IN": normalize(data.cashIn),
-        "CASH OUT": normalize(data.cashOut),
+        "OPENING BALANCE": normalize(data.openingBalance) || 0,
+        "CASH IN": normalize(data.cashIn) || 0,
+        "CASH OUT": normalize(data.cashOut) || 0,
         "CASH LEISURE": normalize(data.cashLeisure),
         "REMARK": normalize(data.remark)
     };
@@ -68,15 +68,16 @@ function dailyTransaction(data) {
     payload["SERIAL NUMBER"],
     payload["DATE"],
     payload["LOCATION"],
-    payload["OPENING BALANCE"],
-    payload["CASH IN"],
-    payload["CASH OUT"],
     payload["CASH LEISURE"],
     payload["REMARK"]
   ];
 
   if (requiredFields.some(v => !v)) {
     return { status: 0, message: "some fields are missing" };
+  }
+
+  if (payload["CASH IN"] < 0 && payload["CASH OUT"] < 0) {
+    return { status: 0, message: "both cash in and cash out cannot be zero" };
   }
 
   safeWriteRow(sheet, nextRow, payload, DAILY_TRANSACTION);
