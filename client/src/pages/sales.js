@@ -1,13 +1,15 @@
 import { clearSession } from "../services/session.js";
 import { DailyTransactionForm } from "../components/DailyTransactionForm.js";
 import { NewWalkInForm } from "../components/NewWalkInForm.js";
+import { FollowUpList } from "../components/FollowUpList.js";
 import "../style/SalesPage.css";
 import "../style/Sidebar.css";
 import "../style/FormContainer.css";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
-    { label: "New Walk In", component: NewWalkInForm }
+    { label: "New Walk In", component: NewWalkInForm },
+    { label: "Customer Follow Up", component: FollowUpList }
 ];
 
 export function renderSales(session) {

@@ -124,3 +124,57 @@ function newWalkIn(data) {
   safeWriteRow(sheet, nextRow, payload, FOLLOW_UP);
   return { status: 1, message: "new walk in data added successfully" };
 }
+
+function getFollowUpList(data) {
+  if (!data || !data.branch || !data.page || !data.limit || !data.status) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("FOLLOW UP");
+
+  if (!sheet) {
+    return { status: 0, message: "FOLLOW UP sheet not found" };
+  }
+
+  const nextRow = getFirstEmptyRow(sheet, "A2:A");
+  const lastRow = nextRow - 1;
+
+  if (lastRow < 2) {
+    return { status: 1, message: "success", data: [] };
+  }
+
+  const locationCol = FOLLOW_UP["LOCATION"];
+  const statusCol = FOLLOW_UP["STATUS"];
+  const targetBranch = normalize(data.branch);
+  const targetStatus = normalize(data.status);
+
+  const locationValues = sheet.getRange(2, locationCol, lastRow - 1, 1).getValues();
+  const statusValues = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
+
+  const matchingRowIndexes = [];
+  for (let i = 0; i < locationValues.length; i++) {
+    if (normalize(locationValues[i][0]) === targetBranch && normalize(statusValues[i][0]) === targetStatus) {
+      matchingRowIndexes.push(i + 2);
+    }
+  }
+
+  const start = (data.page - 1) * data.limit;
+  const end = start + data.limit;
+  const paginatedIndexes = matchingRowIndexes.slice(start, end);
+
+  const resultData = [];
+  const lastColumn = Object.keys(FOLLOW_UP).length;
+
+  for (let i = 0; i < paginatedIndexes.length; i++) {
+    const rowIndex = paginatedIndexes[i];
+    const rowData = sheet.getRange(rowIndex, 1, 1, lastColumn).getValues()[0];
+    resultData.push(rowData);
+  }
+
+  return {
+    status: 1,
+    message: "success",
+    data: resultData
+  };
+}
