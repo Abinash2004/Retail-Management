@@ -126,7 +126,7 @@ function newWalkIn(data) {
 }
 
 function getFollowUpList(data) {
-  if (!data || !data.branch || !data.page || !data.limit || !data.status) {
+  if (!data || !data.branch || !data.page || !data.limit) {
     return { status: 0, message: "invalid payload" };
   }
 
@@ -148,13 +148,16 @@ function getFollowUpList(data) {
   const statusCol = FOLLOW_UP["STATUS"];
   const targetBranch = normalize(data.branch);
   const targetStatus = normalize(data.status);
+  const filterByStatus = targetStatus && targetStatus !== "ALL";
 
   const locationValues = sheet.getRange(2, locationCol, lastRow - 1, 1).getValues();
   const statusValues = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
 
   const matchingRowIndexes = [];
   for (let i = 0; i < locationValues.length; i++) {
-    if (normalize(locationValues[i][0]) === targetBranch && normalize(statusValues[i][0]) === targetStatus) {
+    const locationMatch = normalize(locationValues[i][0]) === targetBranch;
+    const statusMatch = !filterByStatus || normalize(statusValues[i][0]) === targetStatus;
+    if (locationMatch && statusMatch) {
       matchingRowIndexes.push(i + 2);
     }
   }
@@ -177,4 +180,61 @@ function getFollowUpList(data) {
     message: "success",
     data: resultData
   };
+}
+
+function updateFollowUp(data) {
+  if (!data || !data.serialNumber) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("FOLLOW UP");
+
+  if (!sheet) {
+    return { status: 0, message: "FOLLOW UP sheet not found" };
+  }
+
+  const serialCol = FOLLOW_UP["SERIAL NUMBER"];
+  const nextRow = getFirstEmptyRow(sheet, "A2:A");
+  const lastRow = nextRow - 1;
+
+  if (lastRow < 2) {
+    return { status: 0, message: "record not found" };
+  }
+
+  const serialValues = sheet.getRange(2, serialCol, lastRow - 1, 1).getValues();
+  let rowIndex = -1;
+  const targetSerial = parseInt(data.serialNumber, 10);
+
+  for (let i = 0; i < serialValues.length; i++) {
+    if (parseInt(serialValues[i][0], 10) === targetSerial) {
+      rowIndex = i + 2;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "record not found" };
+  }
+
+  const existingFirstFeedback = sheet.getRange(rowIndex, FOLLOW_UP["FIRST FEEDBACK"]).getValue();
+
+  const payload = {
+    "ALTERNATE MOBILE NUMBER": normalize(data.alternateMobileNumber),
+    "ADDRESS": normalize(data.address),
+    "VEHICLE DETAILS": normalize(data.vehicleDetails),
+    "STATUS": normalize(data.status),
+    "REMARKS": normalize(data.remarks)
+  };
+
+  if (!existingFirstFeedback) {
+    payload["FIRST FEEDBACK"] = normalize(data.firstFeedback);
+    payload["FIRST FEEDBACK DATE"] = new Date();
+  } else {
+    payload["LAST FEEDBACK"] = normalize(data.lastFeedback);
+    payload["LAST FEEDBACK DATE"] = new Date();
+  }
+
+  safeWriteRow(sheet, rowIndex, payload, FOLLOW_UP);
+  return { status: 1, message: "follow up updated successfully" };
 }

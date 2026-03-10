@@ -16,6 +16,9 @@
     margin: 0;
 }
 
+#fup-status-dropdown {
+    width: 180px;
+}
 
 #follow-up-table-container {
     flex: 1;
@@ -40,6 +43,33 @@
     position: sticky;
     top: 0;
     background: #f5f5f5;
+}
+
+#follow-up-table tbody tr.fup-row {
+    cursor: pointer;
+}
+
+#follow-up-table tbody tr.fup-row:hover {
+    background: #f0f0f0;
+}
+
+.fup-badge {
+    font-size: 0.8em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #ffe0b2;
+    color: #555;
+    white-space: nowrap;
+}
+
+.fup-badge.partial {
+    background: #fff9c4;
+    color: #f57f17;
+}
+
+.fup-badge.done {
+    background: #c8e6c9;
+    color: #2e7d32;
 }
 
 #follow-up-pagination {
