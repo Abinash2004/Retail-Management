@@ -1,10 +1,10 @@
 import { clearSession } from "../services/session.js";
-import { DailyTransactionForm } from "../components/DailyTransactionForm.js";
-import { NewWalkInForm } from "../components/NewWalkInForm.js";
-import { FollowUpList } from "../components/FollowUpList.js";
-import "../style/SalesPage.css";
-import "../style/Sidebar.css";
-import "../style/FormContainer.css";
+import { DailyTransactionForm } from "../components/showroom/DailyTransactionForm.js";
+import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
+import { FollowUpList } from "../components/showroom/FollowUpList.js";
+import "../style/showroom/ShowroomPage.css";
+import "../style/showroom/Sidebar.css";
+import "../style/showroom/FormContainer.css";
 
 const FORMS = [
     { label: "Daily Transaction", component: DailyTransactionForm },
@@ -12,23 +12,23 @@ const FORMS = [
     { label: "Customer Follow Up", component: FollowUpList }
 ];
 
-export function renderSales(session) {
+export function renderShowroom(session) {
     document.getElementById("app").innerHTML = `
-        <div id="sales-page">
-            <div id="sales-sidebar">
+        <div id="showroom-page">
+            <div id="showroom-sidebar">
                 <h3>Forms</h3>
                 <ul id="form-list"></ul>
                 <hr>
                 <button id="logout">Logout</button>
             </div>
-            <div id="sales-content">
+            <div id="showroom-content">
                 <p>Select a form from the sidebar.</p>
             </div>
         </div>
     `;
 
     const formList    = document.getElementById("form-list");
-    const contentArea = document.getElementById("sales-content");
+    const contentArea = document.getElementById("showroom-content");
     let activeIndex   = null;
 
     FORMS.forEach(({ label, component }, index) => {

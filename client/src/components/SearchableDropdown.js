@@ -1,4 +1,4 @@
-import "../style/SearchableDropdown.css";
+import "../style/showroom/SearchableDropdown.css";
 
 const SearchableDropdown = (() => {
 

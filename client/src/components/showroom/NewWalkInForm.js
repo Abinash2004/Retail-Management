@@ -1,5 +1,5 @@
-import { backendRequest } from "../api/index.js";
-import "../style/NewWalkInForm.css";
+import { backendRequest } from "../../api/index.js";
+import "../../style/showroom/NewWalkInForm.css";
 
 const NewWalkInForm = (() => {
 

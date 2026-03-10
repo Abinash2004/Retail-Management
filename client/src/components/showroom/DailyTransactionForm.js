@@ -1,6 +1,6 @@
-import { backendRequest } from "../api/index.js";
-import { SearchableDropdown } from "./SearchableDropdown.js";
-import "../style/DailyTransactionForm.css";
+import { backendRequest } from "../../api/index.js";
+import { SearchableDropdown } from "../SearchableDropdown.js";
+import "../../style/showroom/DailyTransactionForm.css";
 
 const CASH_IN_COL  = 7;
 const CASH_OUT_COL = 8;

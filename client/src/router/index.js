@@ -1,11 +1,11 @@
 import { getSession } from "../services/session.js";
 import { renderLogin } from "../pages/login.js";
-import { renderSales } from "../pages/sales.js";
+import { renderShowroom } from "../pages/showroom.js";
 import { renderAccounts } from "../pages/accounts.js";
 
 const routes = {
     "/login": renderLogin,
-    "/sales": renderSales,
+    "/showroom": renderShowroom,
     "/accounts": renderAccounts
 };
 
@@ -14,7 +14,7 @@ async function navigate() {
 
     const targetPath = !session 
         ? "/login" 
-        : (session.role === "accounts" ? "/accounts" : "/sales");
+        : (session.role === "accounts" ? "/accounts" : "/showroom");
     
     if (window.location.pathname !== targetPath) {
         history.replaceState(null, "", targetPath);

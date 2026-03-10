@@ -38,7 +38,7 @@ export function renderLogin() {
             }
 
             await setSession(role, branch);
-            navigateTo(role === "accounts" ? "/accounts" : "/sales");
+            navigateTo(role === "accounts" ? "/accounts" : "/showroom");
 
         } catch {
             errorEl.textContent = "Server unreachable. Try again.";

@@ -1,6 +1,6 @@
-import { backendRequest } from "../api/index.js";
+import { backendRequest } from "../../api/index.js";
 import { UpdateFollowUpForm } from "./UpdateFollowUpForm.js";
-import "../style/FollowUpList.css";
+import "../../style/showroom/FollowUpList.css";
 
 const LIMIT = 10;
 

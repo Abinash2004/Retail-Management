@@ -1,5 +1,5 @@
-import { backendRequest } from "../api/index.js";
-import "../style/UpdateFollowUpForm.css";
+import { backendRequest } from "../../api/index.js";
+import "../../style/showroom/UpdateFollowUpForm.css";
 
 // 0-indexed into the full row array returned by backend
 const COL = {
@@ -114,12 +114,14 @@ const UpdateFollowUpForm = (() => {
                             <textarea rows="2" readonly>${rowData[COL.FIRST_FEEDBACK] || ""}</textarea>
                         </div>
                     </div>
+                    ${rowData[COL.LAST_FEEDBACK] ? `
                     <div class="uf-row">
                         <div class="uf-field">
                             <label>Last Feedback Date</label>
                             <input type="text" value="${lastFeedbackDate}" readonly />
                         </div>
                     </div>
+                    ` : ""}
                     <div class="uf-field">
                         <label>Last Feedback *</label>
                         <textarea id="uf-last-feedback" rows="4" placeholder="Enter latest feedback...">${rowData[COL.LAST_FEEDBACK] || ""}</textarea>
