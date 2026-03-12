@@ -180,7 +180,7 @@ const UpdateFollowUpForm = (() => {
             statusMsg.className = "info";
 
             try {
-                const res = await backendRequest("updateFollowUp", payload);
+                const res = await backendRequest("updateFollowUpForm", payload);
                 if (res.status === 1) {
                     statusMsg.textContent = "Updated successfully. Returning to list...";
                     statusMsg.className = "success";

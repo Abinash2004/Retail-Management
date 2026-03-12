@@ -26,3 +26,62 @@ function getFirstEmptyRow(sheet, columnRange) {
   }
   return sheet.getLastRow() + 1;
 }
+
+function getRowIndexHandler(sheet, input, column) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const data = sheet.getRange(2, column, lastRow - 1, 1).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (normalize(data[i][0]) === normalize(input)) {
+      return i + 2;
+    }
+  }
+  return -1;
+}
+
+function isDuplicateEntry(sheet, input, column) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return false;
+  const data = sheet.getRange(2, column, lastRow - 1, 1).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim().toUpperCase() === input) return true;
+  }
+  return false;
+}
+
+function getAdvancerRowIndexHandler(sheet, input) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+
+  const statusIndex = ADVANCE["STATUS"] - 2; 
+  const numCols = ADVANCE["STATUS"] - 1;
+
+  const data = sheet.getRange(2, 2, lastRow - 1, numCols).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (
+      normalize(data[i][0]) === normalize(input) &&
+      normalize(data[i][statusIndex]) === "RECEIVED"
+    ) {
+      return i + 2;
+    }
+  }
+  return -1;
+}
+
+function isDuplicateAdvancerEntry(sheet, input) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return false;
+  
+  const statusIndex = ADVANCE["STATUS"] - 2; 
+
+  const numCols = ADVANCE["STATUS"] - 1; 
+  const data = sheet.getRange(2, 2, lastRow - 1, numCols).getValues();
+  
+  for (let i = 0; i < data.length; i++) {
+    if (
+      String(data[i][0]).trim().toUpperCase() == input && 
+      String(data[i][statusIndex]).trim().toUpperCase() == "RECEIVED"
+    ) return true;
+  }
+  return false;
+}

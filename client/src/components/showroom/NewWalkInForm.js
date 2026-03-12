@@ -93,7 +93,7 @@ const NewWalkInForm = (() => {
             statusEl.className = "info";
 
             try {
-                const res = await backendRequest("newWalkIn", payload);
+                const res = await backendRequest("newWalkInForm", payload);
                 if (res.status === 1) {
                     statusEl.textContent = "Submitted successfully. Refreshing...";
                     statusEl.className = "success";

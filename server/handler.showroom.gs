@@ -40,7 +40,7 @@ function getOpeningBalance(data) {
 }
 
 // FROM HANDLERS
-function dailyTransaction(data) {
+function dailyTransactionForm(data) {
   if (!data) {
     return { status: 0, message: "invalid payload" };
   }
@@ -76,7 +76,7 @@ function dailyTransaction(data) {
     return { status: 0, message: "some fields are missing" };
   }
 
-  if (payload["CASH IN"] < 0 && payload["CASH OUT"] < 0) {
+  if (payload["CASH IN"] === 0 && payload["CASH OUT"] === 0) {
     return { status: 0, message: "both cash in and cash out cannot be zero" };
   }
 
@@ -84,7 +84,7 @@ function dailyTransaction(data) {
   return { status: 1, message: "daily transaction added successfully" };
 }
 
-function newWalkIn(data) {
+function newWalkInForm(data) {
   if (!data) {
     return { status: 0, message: "invalid payload" };
   }
@@ -182,7 +182,7 @@ function getFollowUpList(data) {
   };
 }
 
-function updateFollowUp(data) {
+function updateFollowUpForm(data) {
   if (!data || !data.serialNumber) {
     return { status: 0, message: "invalid payload" };
   }

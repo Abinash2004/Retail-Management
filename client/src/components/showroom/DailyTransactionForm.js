@@ -138,7 +138,7 @@ const DailyTransactionForm = (() => {
             statusEl.textContent  = "Submitting...";
 
             try {
-                const res = await backendRequest("dailyTransaction", payload);
+                const res = await backendRequest("dailyTransactionForm", payload);
                 if (res.status === 1) {
                     statusEl.textContent = "Submitted successfully. Refreshing...";
                     setTimeout(() => window.location.reload(), 1500);
