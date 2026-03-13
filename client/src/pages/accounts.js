@@ -1,15 +1,61 @@
 import { clearSession } from "../services/session.js";
+import { AddStockForm } from "../components/accounts/AddStockForm.js";
+import { AddInvoiceForm } from "../components/accounts/AddInvoiceForm.js";
+import { StockMovementForm } from "../components/accounts/StockMovementForm.js";
+import { AdvanceReceiveForm } from "../components/accounts/AdvanceReceiveForm.js";
+import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
+import "../style/accounts/AccountsPage.css";
+import "../style/accounts/Sidebar.css";
+import "../style/accounts/FormContainer.css";
+
+const FORMS = [
+    { label: "Add Stock Form", component: AddStockForm },
+    { label: "Add Invoice Form", component: AddInvoiceForm },
+    { label: "Stock Movement Form", component: StockMovementForm },
+    { label: "Advance Receive Form", component: AdvanceReceiveForm },
+    { label: "Advance Return Form", component: AdvanceReturnForm }
+];
 
 export function renderAccounts(session) {
     document.getElementById("app").innerHTML = `
         <div id="accounts-page">
-            <h1>Accounts Dashboard</h1>
-            <button id="logout">Logout</button>
+            <div id="accounts-sidebar">
+                <h3>Accounts</h3>
+                <ul id="accounts-form-list"></ul>
+                <hr>
+                <button id="logout">Logout</button>
+            </div>
+            <div id="accounts-content">
+                <p>Select a form from the sidebar.</p>
+            </div>
         </div>
     `;
 
+    const formList    = document.getElementById("accounts-form-list");
+    const contentArea = document.getElementById("accounts-content");
+    let activeIndex   = null;
+
+    FORMS.forEach(({ label, component }, index) => {
+        const li = document.createElement("li");
+        li.textContent   = label;
+        li.dataset.index = index;
+
+        li.addEventListener("click", () => {
+            if (activeIndex === index) return;
+            activeIndex = index;
+
+            formList.querySelectorAll("li").forEach(el => el.removeAttribute("data-active"));
+            li.dataset.active = "true";
+
+            contentArea.innerHTML = "";
+            component.mount(contentArea, session);
+        });
+
+        formList.appendChild(li);
+    });
+
     document.getElementById("logout").addEventListener("click", () => {
         clearSession();
-        navigateTo("/login");
+        window.navigateTo("/login");
     });
 }
