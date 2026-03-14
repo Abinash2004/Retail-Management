@@ -372,7 +372,8 @@ function addSaleAccountForm(data) {
     "TOTAL DP": normalize(data.totalDp),
     "RECEIVED DP": normalize(data.receivedDp),
     "ANY EXCHANGE": normalize(data.anyExchange),
-    "ESTIMATED DISBURSEMENT": normalize(data.estimatedDisbursement)
+    "ESTIMATED DISBURSEMENT": normalize(data.estimatedDisbursement),
+    "CUSTOMER ON-ROAD PRICE": normalize(data.customerOnRoadPrice)
   };
 
   if (anyAdvance === "YES") {
@@ -394,7 +395,8 @@ function addSaleAccountForm(data) {
     payload["PRICE TAG NUMBER"],
     payload["TOTAL DP"],
     payload["RECEIVED DP"],
-    payload["ANY EXCHANGE"]
+    payload["ANY EXCHANGE"],
+    payload["CUSTOMER ON-ROAD PRICE"]
   ];
 
   if (anyAdvance === "YES") {

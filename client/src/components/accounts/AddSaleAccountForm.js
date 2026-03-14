@@ -86,6 +86,11 @@ const AddSaleAccountForm = (() => {
                 </div>
 
                 <div>
+                    <label>Customer On Road Price *</label>
+                    <input id="asa-customer-on-road-price" type="number" min="0" placeholder="0" />
+                </div>
+
+                <div>
                     <label>Estimated Disbursement (Optional)</label>
                     <input id="asa-estimated-disbursement" type="number" min="0" placeholder="0" />
                 </div>
@@ -122,6 +127,7 @@ const AddSaleAccountForm = (() => {
         const exDealerInput = container.querySelector("#asa-ex-dealer");
         const exDealValInput = container.querySelector("#asa-ex-deal-val");
         const receivedDpInput = container.querySelector("#asa-received-dp");
+        const onRoadPriceInput = container.querySelector("#asa-customer-on-road-price");
         const estDisbursementInput = container.querySelector("#asa-estimated-disbursement");
         const dueAmountInput = container.querySelector("#asa-due-amount");
         const submitButton = container.querySelector("#asa-submit");
@@ -252,8 +258,9 @@ const AddSaleAccountForm = (() => {
             const anyAdvance = anyAdvanceSelect.value;
             const anyExchange = anyExchangeSelect.value;
             const receivedDp = receivedDpInput.value.trim();
+            const customerOnRoadPrice = onRoadPriceInput.value.trim();
 
-            if (!chassis || !priceTagNumber || !totalDp || !receivedDp) {
+            if (!chassis || !priceTagNumber || !totalDp || !receivedDp || !customerOnRoadPrice) {
                 statusEl.textContent = "Mandatory fields (*) are required.";
                 statusEl.className = "error";
                 return;
@@ -267,6 +274,7 @@ const AddSaleAccountForm = (() => {
                 receivedDp: parseFloat(receivedDp),
                 anyExchange,
                 customerName: customerNameInput.value.trim(),
+                customerOnRoadPrice: parseFloat(customerOnRoadPrice),
                 estimatedDisbursement: parseFloat(estDisbursementInput.value) || 0
             };
 
