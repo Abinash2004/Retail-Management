@@ -4,6 +4,7 @@ import { AddInvoiceForm } from "../components/accounts/AddInvoiceForm.js";
 import { StockMovementForm } from "../components/accounts/StockMovementForm.js";
 import { AdvanceReceiveForm } from "../components/accounts/AdvanceReceiveForm.js";
 import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
+import { AddSaleForm } from "../components/accounts/AddSaleForm.js";
 import "../style/accounts/AccountsPage.css";
 import "../style/accounts/Sidebar.css";
 import "../style/accounts/FormContainer.css";
@@ -13,7 +14,8 @@ const FORMS = [
     { label: "Add Invoice Form", component: AddInvoiceForm },
     { label: "Stock Movement Form", component: StockMovementForm },
     { label: "Advance Receive Form", component: AdvanceReceiveForm },
-    { label: "Advance Return Form", component: AdvanceReturnForm }
+    { label: "Advance Return Form", component: AdvanceReturnForm },
+    { label: "Add Sale Form", component: AddSaleForm }
 ];
 
 export function renderAccounts(session) {

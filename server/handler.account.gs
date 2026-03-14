@@ -282,3 +282,171 @@ function advanceReturnForm(data) {
   safeWriteRow(advanceSheet, rowIndex, payload, ADVANCE);
   return { status: 1, message: "advance returned successfully" };
 }
+
+function addSaleForm(data) {
+  if (!data) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const chassis = normalize(data.chassis);
+
+  const payload = {
+    "SALE COUNTER": normalize(data.saleCounter),
+    "STOCK STATUS": normalize(data.stockStatus),
+    "SALE DATE": data.saleDate || "",
+    "CUSTOMER NAME": normalize(data.customerName),
+    "SALES PERSON": normalize(data.salesPerson)
+  };
+
+  if (payload["STOCK STATUS"] === "B2C") {
+    payload["MOBILE NUMBER"] = normalize(data.mobileNumber);
+    payload["CASH / FINANCE"] = normalize(data.cashOrFinance);
+    payload["FINANCER"] = normalize(data.financer);
+  }
+
+  const requiredFields = [
+    chassis,
+    payload["SALE COUNTER"],
+    payload["STOCK STATUS"],
+    payload["SALE DATE"],
+    payload["CUSTOMER NAME"],
+    payload["SALES PERSON"]
+  ];
+
+  if (payload["STOCK STATUS"] === "B2C") {
+    requiredFields.push(
+      payload["MOBILE NUMBER"],
+      payload["CASH / FINANCE"],
+      payload["FINANCER"]
+    );
+  }
+
+  if (requiredFields.some(v => !v)) {
+    return { status: 0, message: "some fields are missing" };
+  }
+
+  if (payload["STOCK STATUS"] === "B2C") {
+    payload["ALTERNATE MOBILE NUMBER"] = normalize(data.alternate_mobile_number);
+  }
+
+  const rowIndex = getRowIndexHandler(
+    mainSheet,
+    chassis,
+    MAIN["CHASSIS NUMBER"]
+  );
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "chassis does not exist" };
+  }
+
+  safeWriteRow(mainSheet, rowIndex, payload, MAIN);
+  return { status: 1, message: "sale added successfully" };
+}
+
+function addSaleAccountForm(data) {
+  if (!data) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+  const advanceSheet = ss.getSheetByName("ADVANCE");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  } else if (!advanceSheet) {
+    return { status: 0, message: "ADVANCE not found" };
+  }
+
+  const chassis = normalize(data.chassis);
+  const anyAdvance = normalize(data.anyAdvance);
+  const payload = {
+    "PRICE TAG NUMBER": normalize(data.priceTagNumber),
+    "TOTAL DP": normalize(data.totalDp),
+    "RECEIVED DP": normalize(data.receivedDp),
+    "ANY EXCHANGE": normalize(data.anyExchange),
+    "ESTIMATED DISBURSEMENT": normalize(data.estimatedDisbursement)
+  };
+
+  if (anyAdvance === "YES") {
+    payload["ADVANCER NAME"] = normalize(data.advancerName);
+    payload["ADVANCE AMOUNT"] = normalize(data.advanceAmount);
+  }
+
+  if (payload["ANY EXCHANGE"] === "YES") {
+    payload["EXCHANGE MODEL"] = normalize(data.exchangeModel);
+    payload["EXCHANGE REGISTER NUMBER"] = normalize(data.exchangeRegisterNumber);
+    payload["CUSTOMER EXCHANGE VALUE"] = normalize(data.customerExchangeValue);
+    payload["DEALER NAME"] = normalize(data.dealerName);
+    payload["DEALER EXCHANGE VALUE"] = normalize(data.dealerExchangeValue);
+  }
+
+  const requiredFields = [
+    chassis,
+    anyAdvance,
+    payload["PRICE TAG NUMBER"],
+    payload["TOTAL DP"],
+    payload["RECEIVED DP"],
+    payload["ANY EXCHANGE"]
+  ];
+
+  if (anyAdvance === "YES") {
+    requiredFields.push(
+      payload["ADVANCER NAME"],
+      payload["ADVANCE AMOUNT"]
+    );
+  }
+
+  if (payload["ANY EXCHANGE"] === "YES") {
+    requiredFields.push(
+      payload["EXCHANGE MODEL"],
+      payload["EXCHANGE REGISTER NUMBER"],
+      payload["CUSTOMER EXCHANGE VALUE"],
+      payload["DEALER NAME"],
+      payload["DEALER EXCHANGE VALUE"]
+    );
+  }
+
+  if (requiredFields.some(v => !v)) {
+    return { status: 0, message: "some fields are missing" };
+  }
+
+  const rowIndex = getRowIndexHandler(
+    mainSheet,
+    chassis,
+    MAIN["CHASSIS NUMBER"]
+  );
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "chassis does not exist" };
+  }
+
+  safeWriteRow(mainSheet, rowIndex, payload, MAIN);
+
+  if (anyAdvance === "YES") {
+    const advanceRowIndex = getAdvancerRowIndexHandler(
+      advanceSheet,
+      payload["ADVANCER NAME"]
+    );
+
+    if (advanceRowIndex === -1) {
+      return { status: 0, message: "advancer does not exist" };
+    }
+
+    safeWriteRow(
+      advanceSheet,
+      advanceRowIndex,
+      { "STATUS": "PURCHASED" },
+      ADVANCE
+    );
+  }
+
+  return { status: 1, message: "sale account added successfully" };
+}
