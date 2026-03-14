@@ -7,6 +7,7 @@ import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
 import { AddSaleForm } from "../components/accounts/AddSaleForm.js";
 import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js";
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
+import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import "../style/accounts/AccountsPage.css";
 import "../style/accounts/Sidebar.css";
 import "../style/accounts/FormContainer.css";
@@ -19,7 +20,8 @@ const FORMS = [
     { label: "Advance Return Form", component: AdvanceReturnForm },
     { label: "Add Sale Form", component: AddSaleForm },
     { label: "Add Sale Account Form", component: AddSaleAccountForm },
-    { label: "Add Registration Form", component: AddRegistrationForm }
+    { label: "Add Registration Form", component: AddRegistrationForm },
+    { label: "Optional Field Form", component: OptionalFieldForm }
 ];
 
 export function renderAccounts(session) {

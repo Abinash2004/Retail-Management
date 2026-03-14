@@ -492,3 +492,67 @@ function addRegistrationForm(data) {
   safeWriteRow(mainSheet, rowIndex, payload, MAIN);
   return { status: 1, message: "registration number added successfully" };
 }
+
+function optionalFieldForm(data) {
+  if (!data || !data.code) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  
+  const configs = {
+    1: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "KEY NUMBER", 
+      key: "keyNumber",
+      map: MAIN
+    },
+    2: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "ALTERNATE MOBILE NUMBER", 
+      key: "alternateMobileNumber",
+      map: MAIN
+    },
+    3: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "ESTIMATED DISBURSEMENT", 
+      key: "estimatedDisbursement",
+      map: MAIN
+    },
+    4: { 
+      sheet: "ADVANCE", 
+      searchCol: ADVANCE["ADVANCER NAME"], 
+      field: "ALTERNATE MOBILE NUMBER", 
+      key: "alternateMobileNumber",
+      map: ADVANCE
+    }
+  };
+
+  const config = configs[data.code];
+  if (!config) return { status: 0, message: "invalid code" };
+
+  const sheet = ss.getSheetByName(config.sheet);
+  if (!sheet) return { status: 0, message: config.sheet + " not found" };
+
+  const recordKey = normalize(config.sheet === "ADVANCE" ? data.advancerName : data.chassis);
+  const fieldValue = normalize(data[config.key]);
+
+  if (!recordKey || !fieldValue) {
+    return { status: 0, message: "required fields are missing" };
+  }
+
+  const rowIndex = getRowIndexHandler(sheet, recordKey, config.searchCol);
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "record does not exist" };
+  }
+
+  const payload = {};
+  payload[config.field] = fieldValue;
+
+  safeWriteRow(sheet, rowIndex, payload, config.map);
+  return { status: 1, message: "optional field updated successfully" };
+}
