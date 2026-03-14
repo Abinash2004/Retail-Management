@@ -86,6 +86,11 @@ const AddSaleAccountForm = (() => {
                 </div>
 
                 <div>
+                    <label>Estimated Disbursement (Optional)</label>
+                    <input id="asa-estimated-disbursement" type="number" min="0" placeholder="0" />
+                </div>
+
+                <div>
                     <label>Received Down Payment *</label>
                     <input id="asa-received-dp" type="number" min="0" placeholder="0" />
                 </div>
@@ -117,6 +122,7 @@ const AddSaleAccountForm = (() => {
         const exDealerInput = container.querySelector("#asa-ex-dealer");
         const exDealValInput = container.querySelector("#asa-ex-deal-val");
         const receivedDpInput = container.querySelector("#asa-received-dp");
+        const estDisbursementInput = container.querySelector("#asa-estimated-disbursement");
         const dueAmountInput = container.querySelector("#asa-due-amount");
         const submitButton = container.querySelector("#asa-submit");
         const statusEl = container.querySelector("#asa-status");
@@ -234,7 +240,8 @@ const AddSaleAccountForm = (() => {
                 anyAdvance,
                 receivedDp: parseFloat(receivedDp),
                 anyExchange,
-                customerName: customerNameInput.value.trim()
+                customerName: customerNameInput.value.trim(),
+                estimatedDisbursement: parseFloat(estDisbursementInput.value) || 0
             };
 
             if (anyAdvance === "YES") {
