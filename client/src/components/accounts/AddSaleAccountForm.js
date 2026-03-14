@@ -22,7 +22,7 @@ const AddSaleAccountForm = (() => {
 
                 <div>
                     <label>Customer Name</label>
-                    <input id="asa-customer-name" type="text" placeholder="Enter customer name" />
+                    <input id="asa-customer-name" type="text" readonly placeholder="Auto-fetched on chassis selection" />
                 </div>
 
                 <div>
@@ -164,7 +164,33 @@ const AddSaleAccountForm = (() => {
 
         chassisDropdown = SearchableDropdown.mount(container.querySelector("#asa-chassis-container"), {
             options: [],
-            placeholder: "Select chassis number..."
+            placeholder: "Select chassis number...",
+            onChange: async (val) => {
+                if (!val) {
+                    customerNameInput.value = "";
+                    return;
+                }
+                
+                customerNameInput.value = "Fetching...";
+                statusEl.textContent = "Fetching customer details...";
+                statusEl.className = "info";
+                
+                try {
+                    const res = await backendRequest("getChassis", val);
+                    if (res.status === 1 && res.data) {
+                        customerNameInput.value = res.data.customer || "N/A";
+                        statusEl.textContent = "";
+                    } else {
+                        customerNameInput.value = "Not Found";
+                        statusEl.textContent = "Chassis details not found.";
+                        statusEl.className = "error";
+                    }
+                } catch (err) {
+                    customerNameInput.value = "Error";
+                    statusEl.textContent = "Error fetching chassis details.";
+                    statusEl.className = "error";
+                }
+            }
         });
 
         advancerDropdown = SearchableDropdown.mount(container.querySelector("#asa-advancer-container"), {

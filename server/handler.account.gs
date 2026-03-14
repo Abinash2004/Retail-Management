@@ -450,3 +450,43 @@ function addSaleAccountForm(data) {
 
   return { status: 1, message: "sale account added successfully" };
 }
+
+function addRegistrationForm(data) {
+  if (!data) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const chassis = normalize(data.chassis);
+  const payload = {
+    "REGISTRATION NUMBER": normalize(data.registrationNumber)
+  };
+
+  const requiredFields = [
+    chassis,
+    payload["REGISTRATION NUMBER"]
+  ];
+
+  if (requiredFields.some(v => !v)) {
+    return { status: 0, message: "some fields are missing" };
+  }
+
+  const rowIndex = getRowIndexHandler(
+    mainSheet,
+    chassis,
+    MAIN["CHASSIS NUMBER"]
+  );
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "chassis does not exist" };
+  }
+
+  safeWriteRow(mainSheet, rowIndex, payload, MAIN);
+  return { status: 1, message: "registration number added successfully" };
+}
