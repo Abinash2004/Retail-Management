@@ -8,6 +8,7 @@ import { AddSaleForm } from "../components/accounts/AddSaleForm.js";
 import { AddSaleAccountForm } from "../components/accounts/AddSaleAccountForm.js";
 import { AddRegistrationForm } from "../components/accounts/AddRegistrationForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
+import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
 import "../style/accounts/AccountsPage.css";
 import "../style/accounts/Sidebar.css";
 import "../style/accounts/FormContainer.css";
@@ -21,7 +22,8 @@ const FORMS = [
     { label: "Add Sale Form", component: AddSaleForm },
     { label: "Add Sale Account Form", component: AddSaleAccountForm },
     { label: "Add Registration Form", component: AddRegistrationForm },
-    { label: "Optional Field Form", component: OptionalFieldForm }
+    { label: "Optional Field Form", component: OptionalFieldForm },
+    { label: "Verify Transaction Form", component: VerifyTransactionForm }
 ];
 
 export function renderAccounts(session) {

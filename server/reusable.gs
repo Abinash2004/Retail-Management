@@ -58,10 +58,7 @@ function getAdvancerRowIndexHandler(sheet, input) {
 
   const data = sheet.getRange(2, 2, lastRow - 1, numCols).getValues();
   for (let i = 0; i < data.length; i++) {
-    if (
-      normalize(data[i][0]) === normalize(input) &&
-      normalize(data[i][statusIndex]) === "RECEIVED"
-    ) {
+    if (normalize(data[i][0]) === normalize(input)) {
       return i + 2;
     }
   }

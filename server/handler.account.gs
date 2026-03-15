@@ -24,17 +24,20 @@ function getChassis(chassis) {
   const modelCol = MAIN["MODEL"];
   const colorCol = MAIN["COLOR"];
   const customerCol = MAIN["CUSTOMER NAME"];
+  const receivedDPCol = MAIN["RECEIVED DP"];
 
   const model = mainSheet.getRange(rowIndex, modelCol).getValue();
   const color = mainSheet.getRange(rowIndex, colorCol).getValue();
   const customer = mainSheet.getRange(rowIndex, customerCol).getValue();
+  const receivedDP = mainSheet.getRange(rowIndex, receivedDPCol).getValue();
 
   return {
     status: 1,
     data: {
       model,
       color,
-      customer
+      customer,
+      receivedDP
     }
   };
 }
@@ -61,11 +64,13 @@ function getAdvance(advancer_name) {
   }
 
   const amountCol = ADVANCE["AMOUNT"];
+  const returnAmountCol = ADVANCE["ADVANCE RETURN"];
   const amount = advanceSheet.getRange(rowIndex, amountCol).getValue();
+  const returnAmount = advanceSheet.getRange(rowIndex, returnAmountCol).getValue();
 
   return {
     status: 1,
-    data: { amount }
+    data: { amount, returnAmount }
   };
 }
 
@@ -528,6 +533,91 @@ function optionalFieldForm(data) {
       field: "ALTERNATE MOBILE NUMBER", 
       key: "alternateMobileNumber",
       map: ADVANCE
+    }
+  };
+
+  const config = configs[data.code];
+  if (!config) return { status: 0, message: "invalid code" };
+
+  const sheet = ss.getSheetByName(config.sheet);
+  if (!sheet) return { status: 0, message: config.sheet + " not found" };
+
+  const recordKey = normalize(config.sheet === "ADVANCE" ? data.advancerName : data.chassis);
+  const fieldValue = normalize(data[config.key]);
+
+  if (!recordKey || !fieldValue) {
+    return { status: 0, message: "required fields are missing" };
+  }
+
+  const rowIndex = getRowIndexHandler(sheet, recordKey, config.searchCol);
+
+  if (rowIndex === -1) {
+    return { status: 0, message: "record does not exist" };
+  }
+
+  const payload = {};
+  payload[config.field] = fieldValue;
+
+  safeWriteRow(sheet, rowIndex, payload, config.map);
+  return { status: 1, message: "optional field updated successfully" };
+}
+
+function verifyTransactionForm(data) {
+  if (!data || !data.code) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  
+  const configs = {
+    1: { 
+      sheet: "ADVANCE", 
+      searchCol: ADVANCE["ADVANCER NAME"], 
+      field: "RECEIVED TRANSACTION CODE",
+      key: "receivedTransactionCode",
+      map: ADVANCE
+    },
+    2: {
+      sheet: "ADVANCE", 
+      searchCol: ADVANCE["ADVANCER NAME"], 
+      field: "RETURNED TRANSACTION CODE",
+      key: "returnedTransactionCode",
+      map: ADVANCE
+    },
+    3: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "DP TRANSACTION CODE", 
+      key: "dpTransactionCode",
+      map: MAIN
+    },
+    4: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "INSURANCE TRANSACTION CODE", 
+      key: "insuranceTransactionCode",
+      map: MAIN
+    },
+    5: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "RTO TRANSACTION CODE", 
+      key: "rtoTransactionCode",
+      map: MAIN
+    },
+    6: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "DISBURSEMENT TRANSACTION CODE", 
+      key: "disbursementTransactionCode",
+      map: MAIN
+    },
+    7: { 
+      sheet: "MAIN", 
+      searchCol: MAIN["CHASSIS NUMBER"], 
+      field: "EXCHANGE TRANSACTION CODE", 
+      key: "exchangeTransactionCode",
+      map: MAIN
     }
   };
 
