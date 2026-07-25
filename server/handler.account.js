@@ -701,3 +701,61 @@ function verifyTransactionForm(data) {
   safeWriteRow(sheet, rowIndex, payload, config.map);
   return { status: 1, message: "verified successfully" };
 }
+
+function getDPCallPendingList() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [] };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 25).getValues();
+  const list = [];
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    // ST STATUS must be B2C
+    const stockStatus = normalize(row[MAIN["ST STATUS"] - 1]);
+    if (stockStatus !== "B2C") continue;
+
+    // CALL DP must be empty
+    const callDp = normalize(row[MAIN["CALL DP"] - 1]);
+    if (callDp !== "") continue;
+
+    const chassis = String(row[MAIN["CHASSIS NUMBER"] - 1]).trim();
+    const customerName = String(row[MAIN["CUSTOMER NAME"] - 1]).trim();
+    if (chassis) {
+      list.push({ chassis: chassis, customerName: customerName });
+    }
+  }
+
+  return { status: 1, data: list };
+}
+
+function submitDPCallVerification(data) {
+  if (!data || !data.chassis) {
+    return { status: 0, message: "chassis is required" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const rowIndex = getRowIndexHandler(mainSheet, data.chassis, MAIN["CHASSIS NUMBER"]);
+  if (rowIndex === -1) {
+    return { status: 0, message: "Chassis not found in sheet" };
+  }
+
+  mainSheet.getRange(rowIndex, MAIN["CALL DP"]).setValue("DONE");
+  return { status: 1, message: "DP Call verified successfully as DONE" };
+}

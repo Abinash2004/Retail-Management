@@ -9,6 +9,7 @@ import { AdvanceReturnForm } from "../components/accounts/AdvanceReturnForm.js";
 import { RTOForm } from "../components/accounts/RTOForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
+import { DPCallVerification } from "../components/accounts/DPCallVerification.js";
 import { StockReport } from "../components/accounts/StockReport.js";
 import { SalesReport } from "../components/accounts/SalesReport.js";
 import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
@@ -30,7 +31,8 @@ const GROUPS = [
             { label: "Add Sale Account Form", component: AddSaleAccountForm },
             { label: "RTO Form", component: RTOForm },
             { label: "Optional Field Form", component: OptionalFieldForm },
-            { label: "Verify Transaction Form", component: VerifyTransactionForm }
+            { label: "Verify Transaction Form", component: VerifyTransactionForm },
+            { label: "DP Call Verification", component: DPCallVerification }
         ]
     },
     {
