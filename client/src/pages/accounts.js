@@ -10,6 +10,8 @@ import { RTOForm } from "../components/accounts/RTOForm.js";
 import { OptionalFieldForm } from "../components/accounts/OptionalFieldForm.js";
 import { VerifyTransactionForm } from "../components/accounts/VerifyTransactionForm.js";
 import { StockReport } from "../components/accounts/StockReport.js";
+import { SalesReport } from "../components/accounts/SalesReport.js";
+import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
@@ -34,6 +36,8 @@ const GROUPS = [
         label: "Reports",
         items: [
             { label: "Stock Report", component: StockReport },
+            { label: "Sales Report", component: SalesReport },
+            { label: "Advance Report", component: AdvanceReport },
             { label: "Pending Disbursement Report", component: PendingDisbursementReport }
         ]
     }

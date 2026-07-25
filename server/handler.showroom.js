@@ -268,6 +268,191 @@ function getPendingDisbursementList(data) {
     });
   }
 
+  filtered.sort((a, b) => {
+    const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+    const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
+function getNewSalesReport(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 20).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+  const targetMonth = data.month ? normalize(data.month) : "ALL";
+  const isShowroom = data.isShowroom === true || data.isShowroom === "true";
+
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonth = now.getMonth();
+
+  let lastYear = thisYear;
+  let lastMonth = thisMonth - 1;
+  if (lastMonth < 0) {
+    lastMonth = 11;
+    lastYear = thisYear - 1;
+  }
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    const stockStatus = normalize(row[MAIN["ST STATUS"] - 1]);
+    if (stockStatus === "STOCK" || !stockStatus) continue;
+
+    const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+    const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
+    const matchBranch = saleCounter ? saleCounter : currentCounter;
+    if (targetBranch !== "ALL" && matchBranch !== targetBranch) continue;
+
+    const saleDateVal = row[MAIN["SALE DATE"] - 1];
+    if (saleDateVal instanceof Date) {
+      const rYear = saleDateVal.getFullYear();
+      const rMonth = saleDateVal.getMonth();
+
+      if (targetMonth === "THIS_MONTH") {
+        if (rYear !== thisYear || rMonth !== thisMonth) continue;
+      } else if (targetMonth === "LAST_MONTH") {
+        if (rYear !== lastYear || rMonth !== lastMonth) continue;
+      } else {
+        if (isShowroom) {
+          const isThisMonth = (rYear === thisYear && rMonth === thisMonth);
+          const isLastMonth = (rYear === lastYear && rMonth === lastMonth);
+          if (!isThisMonth && !isLastMonth) continue;
+        }
+      }
+    } else {
+      if (targetMonth === "THIS_MONTH" || targetMonth === "LAST_MONTH" || isShowroom) {
+        continue;
+      }
+    }
+
+    let saleDateStr = "";
+    if (saleDateVal instanceof Date) {
+      saleDateStr = saleDateVal.toISOString();
+    } else if (saleDateVal) {
+      saleDateStr = String(saleDateVal);
+    }
+
+    filtered.push({
+      saleDate: saleDateStr,
+      customerName: row[MAIN["CUSTOMER NAME"] - 1],
+      mobileNo: row[MAIN["MOBILE NO"] - 1],
+      model: row[MAIN["MODEL"] - 1],
+      color: row[MAIN["COLOR"] - 1],
+      cashFinance: row[MAIN["CASH / FINANCE"] - 1],
+      salesPerson: row[MAIN["SALES PERSON"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
+      branch: matchBranch
+    });
+  }
+
+  filtered.sort((a, b) => {
+    const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+    const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
+function getAdvanceReportList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const advanceSheet = ss.getSheetByName("ADVANCE");
+
+  if (!advanceSheet) {
+    return { status: 0, message: "ADVANCE not found" };
+  }
+
+  const lastRow = advanceSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = advanceSheet.getRange(2, 1, lastRow - 1, 10).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+  const fromDateStr = data.fromDate ? String(data.fromDate) : "";
+  const toDateStr = data.toDate ? String(data.toDate) : "";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    const advancerName = row[ADVANCE["ADVANCER NAME"] - 1];
+    if (!advancerName) continue;
+
+    const branch = normalize(row[ADVANCE["COUNTER"] - 1]);
+    if (targetBranch !== "ALL" && branch !== targetBranch) continue;
+
+    const advanceDateVal = row[ADVANCE["ADVANCE DATE"] - 1];
+    if (advanceDateVal instanceof Date) {
+      if (fromDateStr) {
+        const fromTime = new Date(fromDateStr).getTime();
+        if (advanceDateVal.getTime() < fromTime) continue;
+      }
+      if (toDateStr) {
+        const toTime = new Date(toDateStr).getTime();
+        if (advanceDateVal.getTime() > toTime) continue;
+      }
+    } else if (fromDateStr || toDateStr) {
+      continue;
+    }
+
+    let advanceDateStr = "";
+    if (advanceDateVal instanceof Date) {
+      advanceDateStr = advanceDateVal.toISOString();
+    } else if (advanceDateVal) {
+      advanceDateStr = String(advanceDateVal);
+    }
+
+    filtered.push({
+      advanceDate: advanceDateStr,
+      advancerName: row[ADVANCE["ADVANCER NAME"] - 1],
+      mobileNumber: row[ADVANCE["MOBILE NUMBER"] - 1],
+      amount: row[ADVANCE["AMOUNT"] - 1],
+      model: row[ADVANCE["MODEL"] - 1],
+      color: row[ADVANCE["COLOR"] - 1],
+      branch: row[ADVANCE["COUNTER"] - 1]
+    });
+  }
+
+  filtered.sort((a, b) => {
+    const dateA = a.advanceDate ? new Date(a.advanceDate).getTime() : 0;
+    const dateB = b.advanceDate ? new Date(b.advanceDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
   const page = parseInt(data.page, 10);
   const limit = parseInt(data.limit, 10);
   const offset = (page - 1) * limit;

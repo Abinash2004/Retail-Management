@@ -1,0 +1,249 @@
+import { backendRequest } from "../../api/index.js";
+import { panelHeader, setStatus } from "../ui.js";
+
+const LIMIT = 20;
+const BRANCHES = ["ASKA", "MOHANA", "SURADA"];
+
+const SalesReport = (() => {
+    function formatDate(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    async function mount(container, session) {
+        let page = 1;
+        let hasMore = true;
+        let isLoading = false;
+
+        const isShowroom = session.role === "showroom" || (!["admin", "account"].includes(session.role) && session.branch);
+        let currentBranch = isShowroom ? session.branch : "ALL";
+        let currentMonth = isShowroom ? "THIS_MONTH" : "ALL";
+        let scrollCleanup = null;
+
+        function renderRow(row) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${formatDate(row.saleDate)}</td>
+                <td>${row.customerName ?? ""}</td>
+                <td class="u-nowrap">
+                    <div class="u-flex-center" style="gap: 8px;">
+                        ${row.mobileNo ?? ""}
+                        ${row.mobileNo ? `
+                            <a href="tel:${row.mobileNo}"
+                               class="ui-phone-btn"
+                               title="Call Customer"
+                               onclick="event.stopPropagation()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 18.5 18.5 0 0 1-5.08-5.08 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                            </a>
+                        ` : ""}
+                    </div>
+                </td>
+                <td>${row.model ?? ""}</td>
+                <td>${row.color ?? ""}</td>
+                <td>${row.cashFinance ?? ""}</td>
+                <td>${row.salesPerson ?? ""}</td>
+                <td>${row.chassisNumber ?? ""}</td>
+                ${!isShowroom ? `<td>${row.branch ?? ""}</td>` : ""}
+            `;
+            return tr;
+        }
+
+        function showList() {
+            container.innerHTML = `
+                <section class="ui-table-card ui-table-card--tight ui-sales-report-view">
+                    ${panelHeader("Sales Report", `
+                        <button id="sales-filter-btn" class="ui-button ui-button--ghost" type="button" style="padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>Filters</span>
+                        </button>
+                    `)}
+                    <div id="sales-status" class="ui-status" role="status" aria-live="polite"></div>
+                    <div class="ui-table-scroll">
+                        <table class="ui-table" id="sales-table">
+                            <thead>
+                                <tr>
+                                    <th>Sale Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Mobile No.</th>
+                                    <th>Model</th>
+                                    <th>Color</th>
+                                    <th>Cash / Finance</th>
+                                    <th>Sales Person</th>
+                                    <th>Chassis Number</th>
+                                    ${!isShowroom ? `<th>Branch</th>` : ""}
+                                </tr>
+                            </thead>
+                            <tbody id="sales-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <div id="sales-filter-drawer" class="ui-drawer" aria-hidden="true">
+                    <div class="ui-drawer__overlay"></div>
+                    <div class="ui-drawer__content">
+                        <div class="ui-drawer__header">
+                            <h3 class="ui-drawer__title">Filters</h3>
+                            <button id="sales-filter-close" class="ui-drawer__close" type="button" aria-label="Close filters">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="ui-drawer__body">
+                            ${!isShowroom ? `
+                            <div class="ui-field" style="margin-bottom: var(--space-4);">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Branch</label>
+                                <select id="sales-branch-filter" class="ui-select">
+                                    <option value="ALL">All Branches</option>
+                                    ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
+                                </select>
+                            </div>
+                            ` : ""}
+                            <div class="ui-field">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Month</label>
+                                <select id="sales-month-filter" class="ui-select">
+                                    ${!isShowroom ? `<option value="ALL">All Data</option>` : ""}
+                                    <option value="THIS_MONTH">This Month</option>
+                                    <option value="LAST_MONTH">Last Month</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const tbody = container.querySelector("#sales-tbody");
+            const tableScroll = container.querySelector(".ui-table-scroll");
+            const branchFilter = container.querySelector("#sales-branch-filter");
+            const monthFilter = container.querySelector("#sales-month-filter");
+            const statusEl = container.querySelector("#sales-status");
+            const filterBtn = container.querySelector("#sales-filter-btn");
+            const filterDrawer = container.querySelector("#sales-filter-drawer");
+            const filterClose = container.querySelector("#sales-filter-close");
+            const filterOverlay = container.querySelector(".ui-drawer__overlay");
+
+            const openDrawer = () => filterDrawer?.setAttribute("aria-hidden", "false");
+            const closeDrawer = () => {
+                const wasOpen = filterDrawer?.getAttribute("aria-hidden") === "false";
+                filterDrawer?.setAttribute("aria-hidden", "true");
+                if (wasOpen) {
+                    const nextBranch = branchFilter ? branchFilter.value : currentBranch;
+                    const nextMonth = monthFilter.value;
+                    if (nextBranch !== currentBranch || nextMonth !== currentMonth) {
+                        currentBranch = nextBranch;
+                        currentMonth = nextMonth;
+                        resetAndLoad();
+                    }
+                }
+            };
+
+            filterBtn?.addEventListener("click", openDrawer);
+            filterClose?.addEventListener("click", closeDrawer);
+            filterOverlay?.addEventListener("click", closeDrawer);
+
+            const onKeyDown = (event) => {
+                if (event.key === "Escape") {
+                    closeDrawer();
+                }
+            };
+
+            container.addEventListener("keydown", onKeyDown);
+
+            async function loadPage({ reset = false } = {}) {
+                if (isLoading) return;
+                if (!reset && !hasMore) return;
+
+                isLoading = true;
+                setStatus(statusEl, reset ? "Loading sales records..." : "Loading more records...", "info", true);
+
+                try {
+                    const res = await backendRequest("getNewSalesReport", {
+                        branch: currentBranch,
+                        month: currentMonth,
+                        isShowroom: isShowroom,
+                        page,
+                        limit: LIMIT
+                    });
+
+                    if (res.status !== 1) {
+                        setStatus(statusEl, res.message || "Unable to load records.", "error");
+                        return;
+                    }
+
+                    const rows = res.data || [];
+                    hasMore = rows.length === LIMIT;
+
+                    if (reset) {
+                        tbody.innerHTML = "";
+                    }
+
+                    if (page === 1 && rows.length === 0) {
+                        const totalCols = isShowroom ? 8 : 9;
+                        tbody.innerHTML = `<tr><td colspan="${totalCols}">No sales records found.</td></tr>`;
+                    } else if (rows.length > 0) {
+                        rows.forEach(row => tbody.appendChild(renderRow(row)));
+                    }
+
+                    setStatus(statusEl);
+                } catch (err) {
+                    console.error("[getNewSalesReport]", err);
+                    setStatus(statusEl, "Unable to load records.", "error");
+                } finally {
+                    isLoading = false;
+                }
+            }
+
+            function resetAndLoad() {
+                page = 1;
+                hasMore = true;
+                tbody.innerHTML = "";
+                loadPage({ reset: true });
+            }
+
+            if (branchFilter) {
+                branchFilter.value = currentBranch;
+            }
+            monthFilter.value = currentMonth;
+
+            let lastScrollTop = 0;
+            const onScroll = () => {
+                if (!tableScroll || isLoading || !hasMore) return;
+                const scrollTop = tableScroll.scrollTop;
+                if (scrollTop === lastScrollTop) return;
+                lastScrollTop = scrollTop;
+
+                const remaining = tableScroll.scrollHeight - scrollTop - tableScroll.clientHeight;
+                if (remaining <= 160) {
+                    page += 1;
+                    loadPage();
+                }
+            };
+
+            tableScroll.addEventListener("scroll", onScroll, { passive: true });
+            scrollCleanup = () => {
+                tableScroll.removeEventListener("scroll", onScroll);
+                container.removeEventListener("keydown", onKeyDown);
+                filterBtn?.removeEventListener("click", openDrawer);
+                filterClose?.removeEventListener("click", closeDrawer);
+                filterOverlay?.removeEventListener("click", closeDrawer);
+            };
+
+            loadPage({ reset: true });
+        }
+
+        showList();
+    }
+
+    return { mount };
+})();
+
+export { SalesReport };

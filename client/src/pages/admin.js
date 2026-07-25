@@ -1,6 +1,8 @@
 import { clearSession } from "../services/session.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { StockReport } from "../components/accounts/StockReport.js";
+import { SalesReport } from "../components/accounts/SalesReport.js";
+import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession } from "../config/index.js";
@@ -8,6 +10,8 @@ import { getSheetUrlForSession } from "../config/index.js";
 const FORMS = [
     { label: "Follow Up List", component: FollowUpList },
     { label: "Stock Report", component: StockReport },
+    { label: "Sales Report", component: SalesReport },
+    { label: "Advance Report", component: AdvanceReport },
     { label: "Pending Disbursement Report", component: PendingDisbursementReport }
 ];
 
