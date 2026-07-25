@@ -715,7 +715,7 @@ function getDPCallPendingList() {
     return { status: 1, data: [] };
   }
 
-  const values = mainSheet.getRange(2, 1, lastRow - 1, 25).getValues();
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 26).getValues();
   const list = [];
 
   for (let i = 0; i < values.length; i++) {
@@ -731,8 +731,16 @@ function getDPCallPendingList() {
 
     const chassis = String(row[MAIN["CHASSIS NUMBER"] - 1]).trim();
     const customerName = String(row[MAIN["CUSTOMER NAME"] - 1]).trim();
+    const totalReceivedVal = String(row[MAIN["TOTAL RECEIVED"] - 1]).trim();
+    const dpTncAmtVal = String(row[MAIN["DP TNC AMT"] - 1]).trim();
+
     if (chassis) {
-      list.push({ chassis: chassis, customerName: customerName });
+      list.push({
+        chassis: chassis,
+        customerName: customerName,
+        totalReceived: totalReceivedVal,
+        dpTncAmt: dpTncAmtVal
+      });
     }
   }
 
@@ -740,8 +748,8 @@ function getDPCallPendingList() {
 }
 
 function submitDPCallVerification(data) {
-  if (!data || !data.chassis) {
-    return { status: 0, message: "chassis is required" };
+  if (!data || !data.chassis || data.dpAmount === undefined) {
+    return { status: 0, message: "chassis and DP amount are required" };
   }
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -756,6 +764,6 @@ function submitDPCallVerification(data) {
     return { status: 0, message: "Chassis not found in sheet" };
   }
 
-  mainSheet.getRange(rowIndex, MAIN["CALL DP"]).setValue("DONE");
-  return { status: 1, message: "DP Call verified successfully as DONE" };
+  mainSheet.getRange(rowIndex, MAIN["CALL DP"]).setValue(data.dpAmount);
+  return { status: 1, message: "DP Call verified successfully with DP Amount " + data.dpAmount };
 }
