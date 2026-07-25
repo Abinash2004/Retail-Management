@@ -538,4 +538,74 @@ function getRTOReportList(data) {
   return { status: 1, message: "success", data: sliced, total: filtered.length };
 }
 
+function getDueReportList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 24).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    // DUE must be non-empty and not 0
+    const dueVal = row[MAIN["DUE"] - 1];
+    if (dueVal === "" || dueVal === undefined || dueVal === null) continue;
+    const dueNum = parseFloat(dueVal);
+    if (isNaN(dueNum) || dueNum === 0) continue;
+
+    // Filter by branch
+    const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+    const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
+    const matchBranch = saleCounter ? saleCounter : currentCounter;
+    if (targetBranch !== "ALL" && matchBranch !== targetBranch) continue;
+
+    const saleDateVal = row[MAIN["SALE DATE"] - 1];
+    let saleDateStr = "";
+    if (saleDateVal instanceof Date) {
+      saleDateStr = saleDateVal.toISOString();
+    } else if (saleDateVal) {
+      saleDateStr = String(saleDateVal);
+    }
+
+    filtered.push({
+      saleDate: saleDateStr,
+      customerName: row[MAIN["CUSTOMER NAME"] - 1],
+      mobileNumber: row[MAIN["MOBILE NO"] - 1],
+      due: dueVal,
+      model: row[MAIN["MODEL"] - 1],
+      color: row[MAIN["COLOR"] - 1],
+      branch: matchBranch
+    });
+  }
+
+  // Sort by saleDate ascending (old to new)
+  filtered.sort((a, b) => {
+    const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+    const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
 
