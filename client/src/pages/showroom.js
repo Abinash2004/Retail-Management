@@ -3,6 +3,7 @@ import { NewWalkInForm } from "../components/showroom/NewWalkInForm.js";
 import { FollowUpList } from "../components/showroom/FollowUpList.js";
 import { StockReport } from "../components/accounts/StockReport.js";
 import { SalesReport } from "../components/accounts/SalesReport.js";
+import { RTOReport } from "../components/showroom/RTOReport.js";
 import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
@@ -13,6 +14,7 @@ const FORMS = [
     { label: "Customer Follow Up", component: FollowUpList },
     { label: "Stock Report", component: StockReport },
     { label: "Sales Report", component: SalesReport },
+    { label: "RTO Report", component: RTOReport },
     { label: "Advance Report", component: AdvanceReport },
     { label: "Pending Disbursement Report", component: PendingDisbursementReport }
 ];

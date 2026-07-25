@@ -23,6 +23,8 @@ const SalesReport = (() => {
         const isShowroom = session.role === "showroom" || (!["admin", "account"].includes(session.role) && session.branch);
         let currentBranch = isShowroom ? session.branch : "ALL";
         let currentMonth = isShowroom ? "THIS_MONTH" : "ALL";
+        let fromDate = "";
+        let toDate = "";
         let scrollCleanup = null;
 
         function renderRow(row) {
@@ -107,15 +109,22 @@ const SalesReport = (() => {
                                     ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
                                 </select>
                             </div>
-                            ` : ""}
+                            <div class="ui-field">
+                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Sale Date Range</label>
+                                <div class="u-flex" style="gap: 8px;">
+                                    <input id="sales-date-from" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                    <input id="sales-date-to" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
+                                </div>
+                            </div>
+                            ` : `
                             <div class="ui-field">
                                 <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Month</label>
                                 <select id="sales-month-filter" class="ui-select">
-                                    ${!isShowroom ? `<option value="ALL">All Data</option>` : ""}
                                     <option value="THIS_MONTH">This Month</option>
                                     <option value="LAST_MONTH">Last Month</option>
                                 </select>
                             </div>
+                            `}
                         </div>
                     </div>
                 </div>
@@ -125,6 +134,8 @@ const SalesReport = (() => {
             const tableScroll = container.querySelector(".ui-table-scroll");
             const branchFilter = container.querySelector("#sales-branch-filter");
             const monthFilter = container.querySelector("#sales-month-filter");
+            const dateFromInput = container.querySelector("#sales-date-from");
+            const dateToInput = container.querySelector("#sales-date-to");
             const statusEl = container.querySelector("#sales-status");
             const filterBtn = container.querySelector("#sales-filter-btn");
             const filterDrawer = container.querySelector("#sales-filter-drawer");
@@ -137,10 +148,15 @@ const SalesReport = (() => {
                 filterDrawer?.setAttribute("aria-hidden", "true");
                 if (wasOpen) {
                     const nextBranch = branchFilter ? branchFilter.value : currentBranch;
-                    const nextMonth = monthFilter.value;
-                    if (nextBranch !== currentBranch || nextMonth !== currentMonth) {
+                    const nextMonth = monthFilter ? monthFilter.value : currentMonth;
+                    const nextFrom = dateFromInput ? dateFromInput.value : fromDate;
+                    const nextTo = dateToInput ? dateToInput.value : toDate;
+
+                    if (nextBranch !== currentBranch || nextMonth !== currentMonth || nextFrom !== fromDate || nextTo !== toDate) {
                         currentBranch = nextBranch;
                         currentMonth = nextMonth;
+                        fromDate = nextFrom;
+                        toDate = nextTo;
                         resetAndLoad();
                     }
                 }
@@ -169,6 +185,8 @@ const SalesReport = (() => {
                     const res = await backendRequest("getNewSalesReport", {
                         branch: currentBranch,
                         month: currentMonth,
+                        fromDate: fromDate,
+                        toDate: toDate,
                         isShowroom: isShowroom,
                         page,
                         limit: LIMIT
@@ -212,7 +230,15 @@ const SalesReport = (() => {
             if (branchFilter) {
                 branchFilter.value = currentBranch;
             }
-            monthFilter.value = currentMonth;
+            if (monthFilter) {
+                monthFilter.value = currentMonth;
+            }
+            if (dateFromInput) {
+                dateFromInput.value = fromDate;
+            }
+            if (dateToInput) {
+                dateToInput.value = toDate;
+            }
 
             let lastScrollTop = 0;
             const onScroll = () => {

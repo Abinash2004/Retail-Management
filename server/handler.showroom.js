@@ -302,6 +302,8 @@ function getNewSalesReport(data) {
   const values = mainSheet.getRange(2, 1, lastRow - 1, 20).getValues();
   const targetBranch = data.branch ? normalize(data.branch) : "ALL";
   const targetMonth = data.month ? normalize(data.month) : "ALL";
+  const fromDateStr = data.fromDate ? String(data.fromDate) : "";
+  const toDateStr = data.toDate ? String(data.toDate) : "";
   const isShowroom = data.isShowroom === true || data.isShowroom === "true";
 
   const now = new Date();
@@ -329,22 +331,31 @@ function getNewSalesReport(data) {
 
     const saleDateVal = row[MAIN["SALE DATE"] - 1];
     if (saleDateVal instanceof Date) {
-      const rYear = saleDateVal.getFullYear();
-      const rMonth = saleDateVal.getMonth();
+      if (isShowroom) {
+        const rYear = saleDateVal.getFullYear();
+        const rMonth = saleDateVal.getMonth();
 
-      if (targetMonth === "THIS_MONTH") {
-        if (rYear !== thisYear || rMonth !== thisMonth) continue;
-      } else if (targetMonth === "LAST_MONTH") {
-        if (rYear !== lastYear || rMonth !== lastMonth) continue;
-      } else {
-        if (isShowroom) {
+        if (targetMonth === "THIS_MONTH") {
+          if (rYear !== thisYear || rMonth !== thisMonth) continue;
+        } else if (targetMonth === "LAST_MONTH") {
+          if (rYear !== lastYear || rMonth !== lastMonth) continue;
+        } else {
           const isThisMonth = (rYear === thisYear && rMonth === thisMonth);
           const isLastMonth = (rYear === lastYear && rMonth === lastMonth);
           if (!isThisMonth && !isLastMonth) continue;
         }
+      } else {
+        if (fromDateStr) {
+          const fromTime = new Date(fromDateStr).getTime();
+          if (saleDateVal.getTime() < fromTime) continue;
+        }
+        if (toDateStr) {
+          const toTime = new Date(toDateStr).getTime();
+          if (saleDateVal.getTime() > toTime) continue;
+        }
       }
     } else {
-      if (targetMonth === "THIS_MONTH" || targetMonth === "LAST_MONTH" || isShowroom) {
+      if (isShowroom || fromDateStr || toDateStr) {
         continue;
       }
     }
@@ -450,6 +461,72 @@ function getAdvanceReportList(data) {
   filtered.sort((a, b) => {
     const dateA = a.advanceDate ? new Date(a.advanceDate).getTime() : 0;
     const dateB = b.advanceDate ? new Date(b.advanceDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
+function getRTOReportList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 45).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    // RTO STATUS must be FIT
+    const rtoStatus = normalize(row[MAIN["RTO STATUS"] - 1]);
+    if (rtoStatus !== "FIT") continue;
+
+    // Filter by branch
+    const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+    const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
+    const matchBranch = saleCounter ? saleCounter : currentCounter;
+    if (targetBranch !== "ALL" && matchBranch !== targetBranch) continue;
+
+    const rtoEntDtVal = row[MAIN["RTO ENT DT"] - 1];
+    let rtoEntDtStr = "";
+    if (rtoEntDtVal instanceof Date) {
+      rtoEntDtStr = rtoEntDtVal.toISOString();
+    } else if (rtoEntDtVal) {
+      rtoEntDtStr = String(rtoEntDtVal);
+    }
+
+    filtered.push({
+      rtoEntDt: rtoEntDtStr,
+      customerName: row[MAIN["CUSTOMER NAME"] - 1],
+      rtoStatus: row[MAIN["RTO STATUS"] - 1],
+      regNo: row[MAIN["REG NO"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1]
+    });
+  }
+
+  // Sort by rtoEntDt ascending (old to new)
+  filtered.sort((a, b) => {
+    const dateA = a.rtoEntDt ? new Date(a.rtoEntDt).getTime() : 0;
+    const dateB = b.rtoEntDt ? new Date(b.rtoEntDt).getTime() : 0;
     return dateA - dateB;
   });
 
