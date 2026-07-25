@@ -496,9 +496,9 @@ function getRTOReportList(data) {
   for (let i = 0; i < values.length; i++) {
     const row = values[i];
     
-    // RTO STATUS must be FIT
+    // RTO STATUS must exist and not be FIT
     const rtoStatus = normalize(row[MAIN["RTO STATUS"] - 1]);
-    if (rtoStatus !== "FIT") continue;
+    if (!rtoStatus || rtoStatus === "FIT") continue;
 
     // Filter by branch
     const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
