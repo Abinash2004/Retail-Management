@@ -680,4 +680,59 @@ function getPendingDPVerificationList(data) {
   return { status: 1, message: "success", data: sliced, total: filtered.length };
 }
 
+function getAccountReportList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
 
+  const ss = SpreadsheetApp.openById(ADMINSHEET_ID);
+  const sheet = ss.getSheetByName("ACCOUNT");
+
+  if (!sheet) {
+    return { status: 0, message: "ACCOUNT sheet not found in ADMINSHEET_ID" };
+  }
+
+  const lastRow = getFirstEmptyRow(sheet, "C2:C" + sheet.getMaxRows()) - 1;
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = sheet.getRange(2, 1, lastRow - 1, 31).getValues();
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+
+    const saleDateVal = row[ADMIN_ACCOUNT["SALE DATE"] - 1];
+    let saleDateStr = "";
+    if (saleDateVal instanceof Date) {
+      saleDateStr = saleDateVal.toISOString();
+    } else if (saleDateVal) {
+      saleDateStr = String(saleDateVal);
+    }
+
+    filtered.push({
+      saleDate: saleDateStr,
+      customerName: row[ADMIN_ACCOUNT["CUSTOMER NAME"] - 1],
+      saleCounter: row[ADMIN_ACCOUNT["SALE COUNTER"] - 1],
+      model: row[ADMIN_ACCOUNT["MODEL"] - 1],
+      color: row[ADMIN_ACCOUNT["COLOR"] - 1],
+      cashFinance: row[ADMIN_ACCOUNT["CASH / FINANCE"] - 1],
+      onRoad: row[ADMIN_ACCOUNT["ON-ROAD PRICE"] - 1]
+    });
+  }
+
+  // Sort by saleDate ascending (old to new)
+  filtered.sort((a, b) => {
+    const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+    const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
