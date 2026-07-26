@@ -32,8 +32,11 @@ const AdminVerificationForm = (() => {
 
         const dpTncAmt = parseNum(rowData.dpTncAmt);
         const disTncAmt = parseNum(rowData.disTncAmt);
+        
+        const cashFinance = rowData.cashFinance ? String(rowData.cashFinance).trim().toUpperCase() : "";
+        const hasDisbursement = cashFinance !== "CASH" && cashFinance !== "";
 
-        const totalIn = advTncAmt + dpTncAmt + disTncAmt + exTncAmt;
+        const totalIn = advTncAmt + dpTncAmt + (hasDisbursement ? disTncAmt : 0) + exTncAmt;
 
         const invVal = parseNum(rowData.invVal);
         const insTncAmt = parseNum(rowData.insTncAmt);
@@ -159,6 +162,10 @@ const AdminVerificationForm = (() => {
                     .avf-wrapper {
                         padding: var(--space-2);
                     }
+                    /* Stretch the last odd child to span full width on mobile viewports */
+                    .avf-fields-grid > *:last-child:nth-child(odd) {
+                        grid-column: 1 / -1;
+                    }
                 }
             </style>
 
@@ -182,10 +189,6 @@ const AdminVerificationForm = (() => {
                                 <input class="ui-input ui-readonly" type="text" readonly value="${formatDate(rowData.saleDate)}" />
                             </div>
                             <div class="ui-field">
-                                <label class="ui-label">Customer Name</label>
-                                <input class="ui-input ui-readonly" type="text" readonly value="${rowData.customerName ?? ""}" />
-                            </div>
-                            <div class="ui-field">
                                 <label class="ui-label">Model</label>
                                 <input class="ui-input ui-readonly" type="text" readonly value="${rowData.model ?? ""}" />
                             </div>
@@ -196,6 +199,10 @@ const AdminVerificationForm = (() => {
                             <div class="ui-field">
                                 <label class="ui-label">Sale Counter</label>
                                 <input class="ui-input ui-readonly" type="text" readonly value="${rowData.saleCounter ?? ""}" />
+                            </div>
+                            <div class="ui-field">
+                                <label class="ui-label">Customer Name</label>
+                                <input class="ui-input ui-readonly" type="text" readonly value="${rowData.customerName ?? ""}" />
                             </div>
                         </div>
                     </div>
@@ -226,6 +233,7 @@ const AdminVerificationForm = (() => {
                         </div>
 
                         <!-- DISBURSEMENT VERIFICATION -->
+                        ${hasDisbursement ? `
                         <div class="avf-card" style="margin-bottom: 0;">
                             <div class="avf-card-title">Disbursement Verification</div>
                             <div class="avf-fields-grid">
@@ -243,6 +251,7 @@ const AdminVerificationForm = (() => {
                                 </div>
                             </div>
                         </div>
+                        ` : ""}
                     </div>
 
                     <!-- CONDITIONAL GRIDS -->
@@ -296,7 +305,7 @@ const AdminVerificationForm = (() => {
                     </div>
                     ` : ""}
 
-                    <!-- SECTION 3: TRANSACTION SUMMARY -->
+                    <!-- SECTION 4: TRANSACTION SUMMARY -->
                     <div class="avf-card">
                         <div class="avf-card-title">Transaction Verification Summary</div>
                         <div class="avf-grid-two">
@@ -305,7 +314,7 @@ const AdminVerificationForm = (() => {
                                 <h5 style="margin: 0 0 var(--space-2) 0; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">IN: Total Cash Flow</h5>
                                 ${hasAdvance ? `<div class="avf-summary-row"><span>Advance Transaction Amount</span> <span>${advTncAmt}</span></div>` : ""}
                                 <div class="avf-summary-row"><span>DP Transaction Amount</span> <span>${dpTncAmt}</span></div>
-                                <div class="avf-summary-row"><span>Disbursement Transaction Amount</span> <span>${disTncAmt}</span></div>
+                                ${hasDisbursement ? `<div class="avf-summary-row"><span>Disbursement Transaction Amount</span> <span>${disTncAmt}</span></div>` : ""}
                                 ${hasExchange ? `<div class="avf-summary-row"><span>Exchange Transaction Amount</span> <span>${exTncAmt}</span></div>` : ""}
                                 <div class="avf-summary-row total"><span>TOTAL IN</span> <span>${totalIn}</span></div>
                             </div>
