@@ -345,7 +345,6 @@ const AdminVerificationForm = (() => {
                         <div class="avf-card-title">Due Amount</div>
                         <div class="avf-fields-grid">
                             <div class="ui-field">
-                                <label class="ui-label">Due Amount</label>
                                 <input class="ui-input ui-readonly" type="text" readonly value="${rowData.due ?? "0"}" />
                             </div>
                         </div>
