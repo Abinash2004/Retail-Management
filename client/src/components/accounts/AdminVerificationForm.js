@@ -82,23 +82,13 @@ const AdminVerificationForm = (() => {
                 }
                 .avf-grid-two {
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                     gap: var(--space-4);
                     margin-bottom: var(--space-4);
                 }
-                .avf-grid-three {
+                .avf-fields-grid {
                     display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: var(--space-4);
-                }
-                .avf-grid-four {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: var(--space-4);
-                }
-                .avf-grid-five {
-                    display: grid;
-                    grid-template-columns: repeat(5, 1fr);
+                    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
                     gap: var(--space-4);
                 }
                 .avf-summary-card {
@@ -159,8 +149,11 @@ const AdminVerificationForm = (() => {
                     border-top: 1px solid var(--border);
                 }
                 @media (max-width: 768px) {
-                    .avf-grid-two, .avf-grid-three, .avf-grid-four, .avf-grid-five {
+                    .avf-grid-two {
                         grid-template-columns: 1fr;
+                        gap: var(--space-3);
+                    }
+                    .avf-fields-grid {
                         gap: var(--space-3);
                     }
                     .avf-wrapper {
@@ -183,7 +176,7 @@ const AdminVerificationForm = (() => {
                     <!-- SECTION 1: BASIC INFORMATION -->
                     <div class="avf-card">
                         <div class="avf-card-title">Basic Information</div>
-                        <div class="avf-grid-five">
+                        <div class="avf-fields-grid">
                             <div class="ui-field">
                                 <label class="ui-label">Sale Date</label>
                                 <input class="ui-input ui-readonly" type="text" readonly value="${formatDate(rowData.saleDate)}" />
@@ -212,7 +205,7 @@ const AdminVerificationForm = (() => {
                         <!-- DOWN PAYMENT VERIFICATION -->
                         <div class="avf-card" style="margin-bottom: 0;">
                             <div class="avf-card-title">Down Payment Verification</div>
-                            <div class="avf-grid-two">
+                            <div class="avf-fields-grid">
                                 <div class="ui-field">
                                     <label class="ui-label">Received DP</label>
                                     <input class="ui-input ui-readonly" type="text" readonly value="${rowData.receivedDp ?? "0"}" />
@@ -235,16 +228,14 @@ const AdminVerificationForm = (() => {
                         <!-- DISBURSEMENT VERIFICATION -->
                         <div class="avf-card" style="margin-bottom: 0;">
                             <div class="avf-card-title">Disbursement Verification</div>
-                            <div class="avf-grid-two" style="grid-template-columns: 1fr; gap: var(--space-2);">
-                                <div class="avf-grid-two">
-                                    <div class="ui-field">
-                                        <label class="ui-label">Estimated Disbursement</label>
-                                        <input class="ui-input ui-readonly" type="text" readonly value="${rowData.estDis ?? "0"}" />
-                                    </div>
-                                    <div class="ui-field">
-                                        <label class="ui-label">Disbursement Transaction Amount</label>
-                                        <input class="ui-input ui-readonly" type="text" readonly value="${rowData.disTncAmt ?? "0"}" />
-                                    </div>
+                            <div class="avf-fields-grid">
+                                <div class="ui-field">
+                                    <label class="ui-label">Estimated Disbursement</label>
+                                    <input class="ui-input ui-readonly" type="text" readonly value="${rowData.estDis ?? "0"}" />
+                                </div>
+                                <div class="ui-field">
+                                    <label class="ui-label">Disbursement Transaction Amount</label>
+                                    <input class="ui-input ui-readonly" type="text" readonly value="${rowData.disTncAmt ?? "0"}" />
                                 </div>
                                 <div class="ui-field">
                                     <label class="ui-label">Disbursement Gap Value</label>
@@ -261,7 +252,7 @@ const AdminVerificationForm = (() => {
                         ${hasAdvance ? `
                         <div class="avf-card" style="margin-bottom: 0;">
                             <div class="avf-card-title">Advance Verification</div>
-                            <div class="avf-grid-three" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                            <div class="avf-fields-grid">
                                 <div class="ui-field">
                                     <label class="ui-label">Adv Amt</label>
                                     <input class="ui-input ui-readonly" type="text" readonly value="${rowData.advAmt ?? "0"}" />
@@ -270,7 +261,7 @@ const AdminVerificationForm = (() => {
                                     <label class="ui-label">Advance Transaction Amount</label>
                                     <input class="ui-input ui-readonly" type="text" readonly value="${rowData.advTncAmt ?? "0"}" />
                                 </div>
-                                <div class="ui-field" style="grid-column: span 2;">
+                                <div class="ui-field">
                                     <label class="ui-label">Advance Gap</label>
                                     <input class="ui-input ui-readonly" type="text" readonly value="${advanceGap}" />
                                 </div>
@@ -282,7 +273,7 @@ const AdminVerificationForm = (() => {
                         ${hasExchange ? `
                         <div class="avf-card" style="margin-bottom: 0;">
                             <div class="avf-card-title">Exchange Verification</div>
-                            <div class="avf-grid-two">
+                            <div class="avf-fields-grid">
                                 <div class="ui-field">
                                     <label class="ui-label">Customer Exchange Value</label>
                                     <input class="ui-input ui-readonly" type="text" readonly value="${rowData.cusExVal ?? "0"}" />
@@ -305,17 +296,17 @@ const AdminVerificationForm = (() => {
                     </div>
                     ` : ""}
 
-                    <!-- SECTION 4: TRANSACTION SUMMARY -->
+                    <!-- SECTION 3: TRANSACTION SUMMARY -->
                     <div class="avf-card">
                         <div class="avf-card-title">Transaction Verification Summary</div>
                         <div class="avf-grid-two">
                             <!-- IN Block -->
                             <div class="avf-summary-card in">
                                 <h5 style="margin: 0 0 var(--space-2) 0; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">IN: Total Cash Flow</h5>
-                                <div class="avf-summary-row"><span>Advance Transaction Amount</span> <span>${advTncAmt}</span></div>
+                                ${hasAdvance ? `<div class="avf-summary-row"><span>Advance Transaction Amount</span> <span>${advTncAmt}</span></div>` : ""}
                                 <div class="avf-summary-row"><span>DP Transaction Amount</span> <span>${dpTncAmt}</span></div>
                                 <div class="avf-summary-row"><span>Disbursement Transaction Amount</span> <span>${disTncAmt}</span></div>
-                                <div class="avf-summary-row"><span>Exchange Transaction Amount</span> <span>${exTncAmt}</span></div>
+                                ${hasExchange ? `<div class="avf-summary-row"><span>Exchange Transaction Amount</span> <span>${exTncAmt}</span></div>` : ""}
                                 <div class="avf-summary-row total"><span>TOTAL IN</span> <span>${totalIn}</span></div>
                             </div>
 
@@ -338,7 +329,7 @@ const AdminVerificationForm = (() => {
                     <!-- SECTION 3: ON-ROAD PRICE STATUS -->
                     <div class="avf-card">
                         <div class="avf-card-title">On-Road price status</div>
-                        <div class="avf-grid-two">
+                        <div class="avf-fields-grid">
                             <div class="ui-field">
                                 <label class="ui-label">On-Road Price</label>
                                 <input class="ui-input ui-readonly" type="text" readonly value="${onRoadPrice}" />
