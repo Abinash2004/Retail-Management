@@ -39,7 +39,12 @@ const AdminVerificationForm = (() => {
         const totalIn = advTncAmt + dpTncAmt + (hasDisbursement ? disTncAmt : 0) + exTncAmt;
 
         const invVal = parseNum(rowData.invVal);
-        const insTncAmt = parseNum(rowData.insTncAmt);
+        
+        // Handle custom Insurance Transaction Amount logic: empty vs 0
+        const insRaw = rowData.insTncAmt;
+        const insDisplay = (insRaw === "" || insRaw === null || insRaw === undefined) ? "" : insRaw;
+        const insTncAmt = (insRaw === "" || insRaw === null || insRaw === undefined) ? 0 : parseNum(insRaw);
+
         const rtoTncAmt = parseNum(rowData.rtoTncAmt);
 
         const totalOut = invVal + insTncAmt + rtoTncAmt;
@@ -323,7 +328,7 @@ const AdminVerificationForm = (() => {
                             <div class="avf-summary-card out">
                                 <h5 style="margin: 0 0 var(--space-2) 0; font-size: 11px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">OUT: Invoiced Charges</h5>
                                 <div class="avf-summary-row"><span>Invoice After GST After Discount</span> <span>${invVal}</span></div>
-                                <div class="avf-summary-row"><span>Insurance Transaction Amount</span> <span>${insTncAmt}</span></div>
+                                <div class="avf-summary-row"><span>Insurance Transaction Amount</span> <span>${insDisplay}</span></div>
                                 <div class="avf-summary-row"><span>RTO Transaction Amount</span> <span>${rtoTncAmt}</span></div>
                                 <div class="avf-summary-row total"><span>TOTAL OUT</span> <span>${totalOut}</span></div>
                             </div>
@@ -332,6 +337,17 @@ const AdminVerificationForm = (() => {
                         <div class="avf-gap-strip">
                             <span>FINAL GAP AMOUNT</span>
                             <span style="color: ${finalGap === 0 ? "var(--success)" : "var(--accent)"};">${finalGap}</span>
+                        </div>
+                    </div>
+
+                    <!-- DUE AMOUNT CARD -->
+                    <div class="avf-card">
+                        <div class="avf-card-title">Due Amount</div>
+                        <div class="avf-fields-grid">
+                            <div class="ui-field">
+                                <label class="ui-label">Due Amount</label>
+                                <input class="ui-input ui-readonly" type="text" readonly value="${rowData.due ?? "0"}" />
+                            </div>
                         </div>
                     </div>
 

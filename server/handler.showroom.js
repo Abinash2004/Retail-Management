@@ -738,7 +738,8 @@ function getAccountReportList(data) {
       exTncAmt: row[ADMIN_ACCOUNT["EX TNC AMT"] - 1],
       invVal: row[ADMIN_ACCOUNT["INV VAL"] - 1],
       insTncAmt: row[ADMIN_ACCOUNT["INS TNC AMT"] - 1],
-      rtoTncAmt: row[ADMIN_ACCOUNT["RTO TNC AMT"] - 1]
+      rtoTncAmt: row[ADMIN_ACCOUNT["RTO TNC AMT"] - 1],
+      due: row[ADMIN_ACCOUNT["DUE"] - 1]
     });
   }
 
