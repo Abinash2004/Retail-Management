@@ -608,4 +608,76 @@ function getDueReportList(data) {
   return { status: 1, message: "success", data: sliced, total: filtered.length };
 }
 
+function getPendingDPVerificationList(data) {
+  if (!data || !data.page || !data.limit) {
+    return { status: 0, message: "invalid payload" };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const mainSheet = ss.getSheetByName("MAIN");
+
+  if (!mainSheet) {
+    return { status: 0, message: "MAIN not found" };
+  }
+
+  const lastRow = mainSheet.getLastRow();
+  if (lastRow < 2) {
+    return { status: 1, data: [], total: 0 };
+  }
+
+  const values = mainSheet.getRange(2, 1, lastRow - 1, 26).getValues();
+  const targetBranch = data.branch ? normalize(data.branch) : "ALL";
+
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    
+    // ST STATUS must be B2C
+    const stockStatus = normalize(row[MAIN["ST STATUS"] - 1]);
+    if (stockStatus !== "B2C") continue;
+
+    // DP TNC AMT must be non-empty
+    const dpTncAmt = String(row[MAIN["DP TNC AMT"] - 1]).trim();
+    if (dpTncAmt !== "") continue;
+
+    // Filter by branch
+    const saleCounter = normalize(row[MAIN["SALE COUNTER"] - 1]);
+    const currentCounter = normalize(row[MAIN["CUR COUNTER"] - 1]);
+    const matchBranch = saleCounter ? saleCounter : currentCounter;
+    if (targetBranch !== "ALL" && matchBranch !== targetBranch) continue;
+
+    const saleDateVal = row[MAIN["SALE DATE"] - 1];
+    let saleDateStr = "";
+    if (saleDateVal instanceof Date) {
+      saleDateStr = saleDateVal.toISOString();
+    } else if (saleDateVal) {
+      saleDateStr = String(saleDateVal);
+    }
+
+    filtered.push({
+      saleDate: saleDateStr,
+      customerName: row[MAIN["CUSTOMER NAME"] - 1],
+      receivedDp: row[MAIN["RECEIVED DP"] - 1],
+      model: row[MAIN["MODEL"] - 1],
+      color: row[MAIN["COLOR"] - 1],
+      chassisNumber: row[MAIN["CHASSIS NUMBER"] - 1],
+      branch: matchBranch
+    });
+  }
+
+  // Sort by saleDate ascending (old to new)
+  filtered.sort((a, b) => {
+    const dateA = a.saleDate ? new Date(a.saleDate).getTime() : 0;
+    const dateB = b.saleDate ? new Date(b.saleDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  const page = parseInt(data.page, 10);
+  const limit = parseInt(data.limit, 10);
+  const offset = (page - 1) * limit;
+  const sliced = filtered.slice(offset, offset + limit);
+
+  return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
 

@@ -7,6 +7,7 @@ import { RTOReport } from "../components/showroom/RTOReport.js";
 import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { DueReport } from "../components/accounts/DueReport.js";
+import { PendingDPVerificationReport } from "../components/accounts/PendingDPVerificationReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getDriveUrlForSession } from "../config/index.js";
 
@@ -15,10 +16,11 @@ const FORMS = [
     { label: "Customer Follow Up", component: FollowUpList },
     { label: "Stock Report", component: StockReport },
     { label: "Sales Report", component: SalesReport },
-    { label: "RTO Report", component: RTOReport },
     { label: "Due Report", component: DueReport },
+    { label: "RTO Report", component: RTOReport },
     { label: "Advance Report", component: AdvanceReport },
-    { label: "Pending Disbursement Report", component: PendingDisbursementReport }
+    { label: "Pending Disbursement Report", component: PendingDisbursementReport },
+    { label: "Pending DP Verification Report", component: PendingDPVerificationReport }
 ];
 
 export function renderShowroom(session) {

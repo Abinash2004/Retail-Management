@@ -15,6 +15,7 @@ import { SalesReport } from "../components/accounts/SalesReport.js";
 import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { DueReport } from "../components/accounts/DueReport.js";
+import { PendingDPVerificationReport } from "../components/accounts/PendingDPVerificationReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
 
@@ -40,9 +41,10 @@ const GROUPS = [
         items: [
             { label: "Stock Report", component: StockReport },
             { label: "Sales Report", component: SalesReport },
+            { label: "Due Report", component: DueReport },
             { label: "Advance Report", component: AdvanceReport },
             { label: "Pending Disbursement Report", component: PendingDisbursementReport },
-            { label: "Due Report", component: DueReport }
+            { label: "Pending DP Verification Report", component: PendingDPVerificationReport }
         ]
     }
 ];

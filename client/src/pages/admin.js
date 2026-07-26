@@ -6,6 +6,7 @@ import { AdvanceReport } from "../components/accounts/AdvanceReport.js";
 import { PendingDisbursementReport } from "../components/accounts/PendingDisbursementReport.js";
 import { DueReport } from "../components/accounts/DueReport.js";
 import { DPCallVerification } from "../components/accounts/DPCallVerification.js";
+import { PendingDPVerificationReport } from "../components/accounts/PendingDPVerificationReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession } from "../config/index.js";
 
@@ -13,10 +14,11 @@ const FORMS = [
     { label: "Follow Up List", component: FollowUpList },
     { label: "Stock Report", component: StockReport },
     { label: "Sales Report", component: SalesReport },
+    { label: "Due Report", component: DueReport },
     { label: "Advance Report", component: AdvanceReport },
     { label: "Pending Disbursement Report", component: PendingDisbursementReport },
-    { label: "Due Report", component: DueReport },
-    { label: "DP Call Verification", component: DPCallVerification }
+    { label: "DP Call Verification", component: DPCallVerification },
+    { label: "Pending DP Verification Report", component: PendingDPVerificationReport }
 ];
 
 export function renderAdmin(session) {
