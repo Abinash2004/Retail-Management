@@ -1,6 +1,7 @@
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 export const WEBAPP_TOKEN = import.meta.env.VITE_WEBAPP_TOKEN;
 export const ACCOUNT_SHEET_URL = import.meta.env.VITE_ACCOUNT_SHEET_URL;
+export const ADMIN_SHEET_URL = import.meta.env.VITE_ADMIN_SHEET_URL;
 export const ASKA_SHEET_URL = import.meta.env.VITE_ASKA_SHEET_URL;
 export const MOHANA_SHEET_URL = import.meta.env.VITE_MOHANA_SHEET_URL;
 export const SURADA_SHEET_URL = import.meta.env.VITE_SURADA_SHEET_URL;

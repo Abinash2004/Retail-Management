@@ -9,7 +9,7 @@ import { DPCallVerification } from "../components/accounts/DPCallVerification.js
 import { PendingDPVerificationReport } from "../components/accounts/PendingDPVerificationReport.js";
 import { AccountReport } from "../components/accounts/AccountReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
-import { getSheetUrlForSession } from "../config/index.js";
+import { getSheetUrlForSession, ADMIN_SHEET_URL } from "../config/index.js";
 
 const GROUPS = [
     {
@@ -126,7 +126,8 @@ export function renderAdmin(session) {
         listId: "admin-form-list",
         contentId: "admin-content",
         emptyContent: renderWelcomeState(`<span class="ui-welcome-state__accent">ADMIN</span> Panel`),
-        showViewSheetButton: Boolean(sheetUrl)
+        showViewSheetButton: Boolean(sheetUrl),
+        showViewAdminSheetButton: Boolean(ADMIN_SHEET_URL)
     });
 
     const formList = document.getElementById("admin-form-list");
@@ -181,6 +182,10 @@ export function renderAdmin(session) {
 
     document.getElementById("view-sheet")?.addEventListener("click", () => {
         window.open(sheetUrl, "_blank", "noopener,noreferrer");
+    });
+
+    document.getElementById("view-admin-sheet")?.addEventListener("click", () => {
+        window.open(ADMIN_SHEET_URL, "_blank", "noopener,noreferrer");
     });
 
     document.getElementById("logout").addEventListener("click", () => {

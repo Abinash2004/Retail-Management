@@ -1,5 +1,6 @@
 import { backendRequest } from "../../api/index.js";
 import { panelHeader, setStatus } from "../ui.js";
+import { AdminVerificationForm } from "./AdminVerificationForm.js";
 
 const LIMIT = 20;
 
@@ -20,6 +21,15 @@ const AccountReport = (() => {
         let isLoading = false;
         let scrollCleanup = null;
 
+        // Set up separate list and form view slots
+        container.innerHTML = `
+            <div id="acc-rep-list-view"></div>
+            <div id="acc-rep-form-view" style="display: none;"></div>
+        `;
+
+        const listView = container.querySelector("#acc-rep-list-view");
+        const formView = container.querySelector("#acc-rep-form-view");
+
         function renderRow(row) {
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -30,12 +40,44 @@ const AccountReport = (() => {
                 <td>${row.color ?? ""}</td>
                 <td>${row.cashFinance ?? ""}</td>
                 <td>${row.onRoad ?? ""}</td>
+                <td>
+                    <button class="ui-verify-btn" title="Verify Record" type="button" style="background: none; border: none; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; color: var(--accent);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </button>
+                </td>
             `;
+
+            const verifyBtn = tr.querySelector(".ui-verify-btn");
+            verifyBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Toggle view display
+                listView.style.display = "none";
+                formView.style.display = "block";
+
+                // Mount verification form
+                AdminVerificationForm.mount(formView, session, row, (shouldRefresh) => {
+                    formView.style.display = "none";
+                    formView.innerHTML = "";
+                    listView.style.display = "block";
+
+                    if (shouldRefresh) {
+                        showList(); // Re-fetch list only when submitted
+                    }
+                });
+            });
+
             return tr;
         }
 
         function showList() {
-            container.innerHTML = `
+            page = 1;
+            hasMore = true;
+            isLoading = false;
+
+            listView.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight ui-sales-report-view">
                     ${panelHeader("Account Report", "")}
                     <div id="acc-rep-status" class="ui-status" role="status" aria-live="polite"></div>
@@ -50,6 +92,7 @@ const AccountReport = (() => {
                                     <th>Color</th>
                                     <th>Cash / Finance</th>
                                     <th>On Road</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="acc-rep-tbody"></tbody>
@@ -58,9 +101,9 @@ const AccountReport = (() => {
                 </section>
             `;
 
-            const tbody = container.querySelector("#acc-rep-tbody");
-            const tableScroll = container.querySelector(".ui-table-scroll");
-            const statusEl = container.querySelector("#acc-rep-status");
+            const tbody = listView.querySelector("#acc-rep-tbody");
+            const tableScroll = listView.querySelector(".ui-table-scroll");
+            const statusEl = listView.querySelector("#acc-rep-status");
 
             async function loadPage({ reset = false } = {}) {
                 if (isLoading) return;
@@ -88,7 +131,7 @@ const AccountReport = (() => {
                     }
 
                     if (page === 1 && rows.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="7">No account records found.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="8">No account records found.</td></tr>`;
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
                     }

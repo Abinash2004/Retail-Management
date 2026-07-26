@@ -703,6 +703,10 @@ function getAccountReportList(data) {
   for (let i = 0; i < values.length; i++) {
     const row = values[i];
 
+    // Filter out rows where the VERIFY column is already populated
+    const verifyVal = normalize(row[ADMIN_ACCOUNT["VERIFY"] - 1]);
+    if (verifyVal !== "") continue;
+
     const saleDateVal = row[ADMIN_ACCOUNT["SALE DATE"] - 1];
     let saleDateStr = "";
     if (saleDateVal instanceof Date) {
@@ -718,7 +722,23 @@ function getAccountReportList(data) {
       model: row[ADMIN_ACCOUNT["MODEL"] - 1],
       color: row[ADMIN_ACCOUNT["COLOR"] - 1],
       cashFinance: row[ADMIN_ACCOUNT["CASH / FINANCE"] - 1],
-      onRoad: row[ADMIN_ACCOUNT["ON-ROAD PRICE"] - 1]
+      onRoad: row[ADMIN_ACCOUNT["ON-ROAD PRICE"] - 1],
+      chassisNumber: row[ADMIN_ACCOUNT["CHASSIS NUMBER"] - 1],
+      receivedDp: row[ADMIN_ACCOUNT["RECEIVED DP"] - 1],
+      callDp: row[ADMIN_ACCOUNT["CALL DP"] - 1],
+      dpTncAmt: row[ADMIN_ACCOUNT["DP TNC AMT"] - 1],
+      dpGap: row[ADMIN_ACCOUNT["DP GAP"] - 1],
+      advAmt: row[ADMIN_ACCOUNT["ADV AMT"] - 1],
+      advTncAmt: row[ADMIN_ACCOUNT["ADV TNC AMT"] - 1],
+      estDis: row[ADMIN_ACCOUNT["EST DIS"] - 1],
+      disTncAmt: row[ADMIN_ACCOUNT["DIS TNC AMT"] - 1],
+      disGap: row[ADMIN_ACCOUNT["DIS GAP"] - 1],
+      cusExVal: row[ADMIN_ACCOUNT["CUS EX VAL"] - 1],
+      dealerExVal: row[ADMIN_ACCOUNT["DEALER EX VAL"] - 1],
+      exTncAmt: row[ADMIN_ACCOUNT["EX TNC AMT"] - 1],
+      invVal: row[ADMIN_ACCOUNT["INV VAL"] - 1],
+      insTncAmt: row[ADMIN_ACCOUNT["INS TNC AMT"] - 1],
+      rtoTncAmt: row[ADMIN_ACCOUNT["RTO TNC AMT"] - 1]
     });
   }
 
@@ -735,4 +755,27 @@ function getAccountReportList(data) {
   const sliced = filtered.slice(offset, offset + limit);
 
   return { status: 1, message: "success", data: sliced, total: filtered.length };
+}
+
+function submitAdminVerification(data) {
+  if (!data || !data.chassisNumber) {
+    return { status: 0, message: "chassisNumber is required" };
+  }
+
+  const ss = SpreadsheetApp.openById(ADMINSHEET_ID);
+  const sheet = ss.getSheetByName("ACCOUNT");
+
+  if (!sheet) {
+    return { status: 0, message: "ACCOUNT sheet not found in ADMINSHEET_ID" };
+  }
+
+  const rowIndex = getRowIndexHandler(sheet, data.chassisNumber, ADMIN_ACCOUNT["CHASSIS NUMBER"]);
+  if (rowIndex === -1) {
+    return { status: 0, message: "Record not found in ACCOUNT sheet" };
+  }
+
+  sheet.getRange(rowIndex, ADMIN_ACCOUNT["VERIFY"]).setValue("VERIFIED");
+  sheet.getRange(rowIndex, ADMIN_ACCOUNT["REMARK"]).setValue(data.remark || "");
+
+  return { status: 1, message: "Record verified successfully" };
 }
