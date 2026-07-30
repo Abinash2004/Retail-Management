@@ -12,7 +12,7 @@ export function renderWelcomeState(titleHtml = "") {
     `;
 }
 
-export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, emptyContent, showViewSheetButton = false, showViewDriveButton = false }) {
+export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, emptyContent, showViewSheetButton = false, showViewAdminSheetButton = false, showViewDriveButton = false }) {
     return `
         <div id="${pageId}" class="app-shell">
             <button id="${pageId}-toggle" class="app-sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-controls="${pageId}-sidebar" aria-expanded="false">
@@ -28,7 +28,8 @@ export function renderSidebarLayout({ pageId, sidebarTitle, listId, contentId, e
                 <ul id="${listId}" class="app-nav"></ul>
                 <div class="app-sidebar__footer">
                     ${showViewDriveButton ? '<button id="view-drive" class="ui-button ui-button--block" type="button">View Drive</button>' : ""}
-                    ${showViewSheetButton ? '<button id="view-sheet" class="ui-button ui-button--block" type="button">View Sheet</button>' : ""}
+                    ${showViewAdminSheetButton ? '<button id="view-admin-sheet" class="ui-button ui-button--block" type="button">View Admin Sheet</button>' : ""}
+                    ${showViewSheetButton ? '<button id="view-sheet" class="ui-button ui-button--block" type="button">View Main Sheet</button>' : ""}
                     <button id="logout" class="ui-button ui-button--block" type="button">Logout</button>
                 </div>
             </aside>

@@ -211,7 +211,13 @@ const VerifyTransactionForm = (() => {
             if (results[6].status === 1) dropdowns.disbChassis.setOptions(results[6].data);
             if (results[7].status === 1) {
                 dropdowns.advRetCode.setOptions(results[7].data);
-                dropdowns.insCode.setOptions(results[7].data);
+                
+                // Insurance Amount verification only: filter out specific code and prepend 'By Customer'
+                let insCodes = [...results[7].data];
+                insCodes = insCodes.filter(c => String(c).trim().toUpperCase() !== "A1 - 01/01/2026 - 0");
+                insCodes.unshift("By Customer");
+                dropdowns.insCode.setOptions(insCodes);
+                
                 dropdowns.rtoCode.setOptions(results[7].data);
             }
             if (results[8].status === 1) dropdowns.exchChassis.setOptions(results[8].data);
@@ -243,7 +249,11 @@ const VerifyTransactionForm = (() => {
                 return;
             }
             payload[c.key] = c.dd.getValue();
-            payload[c.codeKey] = c.codeDD.getValue();
+            let selectedCodeVal = c.codeDD.getValue();
+            if (code === 4 && selectedCodeVal === "By Customer") {
+                selectedCodeVal = "A1 - 01/01/2026 - 0";
+            }
+            payload[c.codeKey] = selectedCodeVal;
 
             if (!payload[c.key] || !payload[c.codeKey]) {
                 setStatus(statusEl, "All fields required.", "error");

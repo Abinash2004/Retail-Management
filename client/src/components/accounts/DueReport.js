@@ -4,7 +4,7 @@ import { panelHeader, setStatus } from "../ui.js";
 const LIMIT = 20;
 const BRANCHES = ["ASKA", "MOHANA", "SURADA"];
 
-const SalesReport = (() => {
+const DueReport = (() => {
     function formatDate(value) {
         if (!value) return "";
         const date = new Date(value);
@@ -22,9 +22,6 @@ const SalesReport = (() => {
 
         const isShowroom = session.role === "showroom" || (!["admin", "account"].includes(session.role) && session.branch);
         let currentBranch = isShowroom ? session.branch : "ALL";
-        let currentMonth = isShowroom ? "THIS_MONTH" : "ALL";
-        let fromDate = "";
-        let toDate = "";
         let scrollCleanup = null;
 
         function renderRow(row) {
@@ -34,9 +31,9 @@ const SalesReport = (() => {
                 <td>${row.customerName ?? ""}</td>
                 <td class="u-nowrap">
                     <div class="u-flex-center" style="gap: 8px;">
-                        ${row.mobileNo ?? ""}
-                        ${row.mobileNo ? `
-                            <a href="tel:${row.mobileNo}"
+                        ${row.mobileNumber ?? ""}
+                        ${row.mobileNumber ? `
+                            <a href="tel:${row.mobileNumber}"
                                class="ui-phone-btn"
                                title="Call Customer"
                                onclick="event.stopPropagation()">
@@ -47,11 +44,9 @@ const SalesReport = (() => {
                         ` : ""}
                     </div>
                 </td>
+                <td>${row.due ?? ""}</td>
                 <td>${row.model ?? ""}</td>
                 <td>${row.color ?? ""}</td>
-                <td>${row.cashFinance ?? ""}</td>
-                <td>${row.salesPerson ?? ""}</td>
-                <td>${row.chassisNumber ?? ""}</td>
                 ${!isShowroom ? `<td>${row.branch ?? ""}</td>` : ""}
             `;
             return tr;
@@ -60,40 +55,39 @@ const SalesReport = (() => {
         function showList() {
             container.innerHTML = `
                 <section class="ui-table-card ui-table-card--tight ui-sales-report-view">
-                    ${panelHeader("Sales Report", `
-                        <button id="sales-filter-btn" class="ui-button ui-button--ghost" type="button" style="padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
+                    ${panelHeader("Due Report", !isShowroom ? `
+                        <button id="due-filter-btn" class="ui-button ui-button--ghost" type="button" style="padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
                                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                             </svg>
                             <span>Filters</span>
                         </button>
-                    `)}
-                    <div id="sales-status" class="ui-status" role="status" aria-live="polite"></div>
+                    ` : "")}
+                    <div id="due-status" class="ui-status" role="status" aria-live="polite"></div>
                     <div class="ui-table-scroll">
-                        <table class="ui-table" id="sales-table">
+                        <table class="ui-table" id="due-table">
                             <thead>
                                 <tr>
                                     <th>Sale Date</th>
                                     <th>Customer Name</th>
-                                    <th>Mobile No.</th>
+                                    <th>Mobile Number</th>
+                                    <th>Due</th>
                                     <th>Model</th>
                                     <th>Color</th>
-                                    <th>Cash / Finance</th>
-                                    <th>Sales Person</th>
-                                    <th>Chassis Number</th>
                                     ${!isShowroom ? `<th>Branch</th>` : ""}
                                 </tr>
                             </thead>
-                            <tbody id="sales-tbody"></tbody>
+                            <tbody id="due-tbody"></tbody>
                         </table>
                     </div>
                 </section>
-                <div id="sales-filter-drawer" class="ui-drawer" aria-hidden="true">
+                ${!isShowroom ? `
+                <div id="due-filter-drawer" class="ui-drawer" aria-hidden="true">
                     <div class="ui-drawer__overlay"></div>
                     <div class="ui-drawer__content">
                         <div class="ui-drawer__header">
                             <h3 class="ui-drawer__title">Filters</h3>
-                            <button id="sales-filter-close" class="ui-drawer__close" type="button" aria-label="Close filters">
+                            <button id="due-filter-close" class="ui-drawer__close" type="button" aria-label="Close filters">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -101,45 +95,26 @@ const SalesReport = (() => {
                             </button>
                         </div>
                         <div class="ui-drawer__body">
-                            ${!isShowroom ? `
-                            <div class="ui-field" style="margin-bottom: var(--space-4);">
+                            <div class="ui-field">
                                 <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Branch</label>
-                                <select id="sales-branch-filter" class="ui-select">
+                                <select id="due-branch-filter" class="ui-select">
                                     <option value="ALL">All Branches</option>
                                     ${BRANCHES.map(branch => `<option value="${branch}">${branch}</option>`).join("")}
                                 </select>
                             </div>
-                            <div class="ui-field">
-                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Sale Date Range</label>
-                                <div class="u-flex" style="gap: 8px;">
-                                    <input id="sales-date-from" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
-                                    <input id="sales-date-to" class="ui-input" type="date" style="flex: 1; min-width: 0;" />
-                                </div>
-                            </div>
-                            ` : `
-                            <div class="ui-field">
-                                <label class="ui-label" style="margin-bottom: var(--space-1); display: block;">Month</label>
-                                <select id="sales-month-filter" class="ui-select">
-                                    <option value="THIS_MONTH">This Month</option>
-                                    <option value="LAST_MONTH">Last Month</option>
-                                </select>
-                            </div>
-                            `}
                         </div>
                     </div>
                 </div>
+                ` : ""}
             `;
 
-            const tbody = container.querySelector("#sales-tbody");
+            const tbody = container.querySelector("#due-tbody");
             const tableScroll = container.querySelector(".ui-table-scroll");
-            const branchFilter = container.querySelector("#sales-branch-filter");
-            const monthFilter = container.querySelector("#sales-month-filter");
-            const dateFromInput = container.querySelector("#sales-date-from");
-            const dateToInput = container.querySelector("#sales-date-to");
-            const statusEl = container.querySelector("#sales-status");
-            const filterBtn = container.querySelector("#sales-filter-btn");
-            const filterDrawer = container.querySelector("#sales-filter-drawer");
-            const filterClose = container.querySelector("#sales-filter-close");
+            const branchFilter = container.querySelector("#due-branch-filter");
+            const statusEl = container.querySelector("#due-status");
+            const filterBtn = container.querySelector("#due-filter-btn");
+            const filterDrawer = container.querySelector("#due-filter-drawer");
+            const filterClose = container.querySelector("#due-filter-close");
             const filterOverlay = container.querySelector(".ui-drawer__overlay");
 
             const openDrawer = () => filterDrawer?.setAttribute("aria-hidden", "false");
@@ -148,15 +123,8 @@ const SalesReport = (() => {
                 filterDrawer?.setAttribute("aria-hidden", "true");
                 if (wasOpen) {
                     const nextBranch = branchFilter ? branchFilter.value : currentBranch;
-                    const nextMonth = monthFilter ? monthFilter.value : currentMonth;
-                    const nextFrom = dateFromInput ? dateFromInput.value : fromDate;
-                    const nextTo = dateToInput ? dateToInput.value : toDate;
-
-                    if (nextBranch !== currentBranch || nextMonth !== currentMonth || nextFrom !== fromDate || nextTo !== toDate) {
+                    if (nextBranch !== currentBranch) {
                         currentBranch = nextBranch;
-                        currentMonth = nextMonth;
-                        fromDate = nextFrom;
-                        toDate = nextTo;
                         resetAndLoad();
                     }
                 }
@@ -179,15 +147,11 @@ const SalesReport = (() => {
                 if (!reset && !hasMore) return;
 
                 isLoading = true;
-                setStatus(statusEl, reset ? "Loading sales records..." : "Loading more records...", "info", true);
+                setStatus(statusEl, reset ? "Loading due records..." : "Loading more records...", "info", true);
 
                 try {
-                    const res = await backendRequest("getNewSalesReport", {
+                    const res = await backendRequest("getDueReportList", {
                         branch: currentBranch,
-                        month: currentMonth,
-                        fromDate: fromDate,
-                        toDate: toDate,
-                        isShowroom: isShowroom,
                         page,
                         limit: LIMIT
                     });
@@ -204,16 +168,16 @@ const SalesReport = (() => {
                         tbody.innerHTML = "";
                     }
 
+                    const totalCols = isShowroom ? 6 : 7;
                     if (page === 1 && rows.length === 0) {
-                        const totalCols = isShowroom ? 8 : 9;
-                        tbody.innerHTML = `<tr><td colspan="${totalCols}">No sales records found.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="${totalCols}">No due records found.</td></tr>`;
                     } else if (rows.length > 0) {
                         rows.forEach(row => tbody.appendChild(renderRow(row)));
                     }
 
                     setStatus(statusEl);
                 } catch (err) {
-                    console.error("[getNewSalesReport]", err);
+                    console.error("[getDueReportList]", err);
                     setStatus(statusEl, "Unable to load records.", "error");
                 } finally {
                     isLoading = false;
@@ -229,15 +193,6 @@ const SalesReport = (() => {
 
             if (branchFilter) {
                 branchFilter.value = currentBranch;
-            }
-            if (monthFilter) {
-                monthFilter.value = currentMonth;
-            }
-            if (dateFromInput) {
-                dateFromInput.value = fromDate;
-            }
-            if (dateToInput) {
-                dateToInput.value = toDate;
             }
 
             let lastScrollTop = 0;
@@ -272,4 +227,4 @@ const SalesReport = (() => {
     return { mount };
 })();
 
-export { SalesReport };
+export { DueReport };
