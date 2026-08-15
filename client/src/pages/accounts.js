@@ -18,6 +18,7 @@ import { DueReport } from "../components/accounts/DueReport.js";
 import { PendingDPVerificationReport } from "../components/accounts/PendingDPVerificationReport.js";
 import { initResponsiveSidebar, renderSidebarLayout, renderWelcomeState } from "../components/ui.js";
 import { getSheetUrlForSession, getDriveUrlForSession } from "../config/index.js";
+import { backendRequest } from "../api/index.js";
 
 const GROUPS = [
     {
@@ -201,9 +202,23 @@ export function renderAccounts(session) {
         window.open(driveUrl, "_blank", "noopener,noreferrer");
     });
 
-    document.getElementById("view-sheet")?.addEventListener("click", () => {
-        window.open(sheetUrl, "_blank", "noopener,noreferrer");
-    });
+    const viewSheetBtn = document.getElementById("view-sheet");
+    if (viewSheetBtn) {
+        viewSheetBtn.addEventListener("click", async () => {
+            const originalText = viewSheetBtn.textContent;
+            viewSheetBtn.textContent = "Syncing...";
+            viewSheetBtn.disabled = true;
+            try {
+                await backendRequest("syncSheet");
+            } catch (err) {
+                console.error("Sync failed:", err);
+            } finally {
+                viewSheetBtn.textContent = originalText;
+                viewSheetBtn.disabled = false;
+                window.open(sheetUrl, "_blank", "noopener,noreferrer");
+            }
+        });
+    }
 
     document.getElementById("logout").addEventListener("click", () => {
         clearSession();
